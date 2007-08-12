@@ -29,7 +29,7 @@ Design:
  Huber values.
 """
 
-import sys
+import sys, getopt
 
 # Database containing fallback, standard values (likely Engh & Huber)
 default = 'default'
@@ -43,6 +43,21 @@ databases = {
 'preproline': '1.0-graphdata-xpro.txt',
 'default': 'engh-huber.txt'
 }
+
+verbose = False
+
+class Usage(Exception):
+    """This class gives a usage message"""
+
+    def __init__(self):
+        print "angles [-v|--verbose] <residue> <phi> <psi>"
+        print
+        print "Unknown residue names will use the 'all' residue class."
+        print "The 'default' residue class is Engh & Huber values."
+        print "Available residue classes:",
+        for db in databases:
+            print db,
+
 
 class bin(object):
     """This class holds all the info about a bin"""
@@ -163,32 +178,37 @@ def get_binsize(dict):
         break
     return phi_binsize, psi_binsize
 
-def usage():
-    """Print usage message and quit"""
-    print "angles <residue> <phi> <psi>"
-    print
-    print "Unknown residue names will use the 'all' residue class."
-    print "The 'default' residue class is Engh & Huber values."
-    print "Available residue classes:",
-    for db in databases:
-        print db,
-    sys.exit(1)
+def vprint(*args):
+    if verbose:
+        for arg in args:
+            print arg
 
-if __name__ == '__main__':
-    # run as a program
-    if len(sys.argv) != 4:
-        usage()
-    else:
-        residue = sys.argv[1].lower()
-        # int() can't convert from string and from float at the same time
-        phi = int(float(sys.argv[2]))
-        psi = int(float(sys.argv[3]))
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+    try:
+        try:
+            optlist, args = getopt.getopt(argv[1:], 'v', ['verbose'])
+        except getopt.GetoptError:
+            raise Usage
+        for o, a in optlist:
+            if o == "-v" or o == "--verbose":
+                global verbose
+                verbose = True
+
+        if len(args) != 3:
+            raise Usage
+        else:
+            residue = args[0].lower()
+            # int() can't convert from string and from float at the same time
+            phi = int(float(args[1]))
+            psi = int(float(args[2]))
 
         # Build up databases
         dblist = {}
         for database in databases:
-            print "Creating database " + database \
-                  + " with file " + databases[database]
+            vprint("Creating database " + database \
+                  + " with file " + databases[database])
             dblist[database] = create_database(databases[database])
 
         # Decide which database to use
@@ -199,15 +219,13 @@ if __name__ == '__main__':
                 dbname='all'
 
         try:
-            print
-#            print "dblist = ", dblist
-            print "dbname = " + dbname
-#            print "phi, psi = ", phi, psi
-#            print dblist[dbname]
+#            vprint("Database list = ", dblist)
+            vprint("Database name = " + dbname)
+#            vprint("Database = ", dblist[dbname])
             phi_binsize, psi_binsize = get_binsize(dblist[dbname])
             print dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
         except KeyError:
-            print "Defaulting to library value"
+            vprint("Defaulting to library value")
 
             # Special code to deal with huge binsizes
             # e.g., 360x360 as in the default library
@@ -224,3 +242,9 @@ if __name__ == '__main__':
                 psi_r = psi-psi_mod
 
             print dblist[default][(phi_r, psi_r)]
+    except Usage:
+        return 2
+
+if __name__ == '__main__':
+    # run as a program
+    sys.exit(main())
