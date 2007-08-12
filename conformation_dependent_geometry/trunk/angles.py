@@ -90,7 +90,7 @@ class bin(object):
         """Print all class attributes"""
 
         list = [str(getattr(self, attr)) for attr in self.__slots__]
-        return ' '.join(list)
+        return '\t'.join(list)
 
 def create_database(filename):
     """Create a dictionary matrix holding all of the bins
