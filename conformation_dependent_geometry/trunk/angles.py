@@ -50,6 +50,8 @@ class Usage(Exception):
     """This class gives a usage message"""
 
     def __init__(self):
+        saveout = sys.stdout
+        sys.stdout = sys.stderr
         print "angles [-v|--verbose] <residue> <phi> <psi>"
         print
         print "Unknown residue names will use the 'all' residue class."
@@ -57,6 +59,8 @@ class Usage(Exception):
         print "Available residue classes:",
         for db in databases:
             print db,
+        print
+        sys.stdout = saveout
 
 
 class bin(object):
@@ -181,7 +185,7 @@ def get_binsize(dict):
 def vprint(*args):
     if verbose:
         for arg in args:
-            print arg
+            print >> sys.stderr, arg
 
 def main(argv=None):
     if argv is None:
