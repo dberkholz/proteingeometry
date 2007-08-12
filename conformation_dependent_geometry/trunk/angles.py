@@ -64,41 +64,41 @@ class bin(object):
 
     # Define legal attributes
     __slots__ = [
-        'phi_start',
-        'phi_stop',
-        'psi_start',
-        'psi_stop',
-        'observations',
-        'phi_avg',
-        'phi_dev',
-        'psi_avg',
-        'psi_dev',
-        'l1_avg',
-        'l1_dev',
-        'l2_avg',
-        'l2_dev',
-        'l3_avg',
-        'l3_dev',
-        'l4_avg',
-        'l4_dev',
-        'l5_avg',
-        'l5_dev',
-        'a1_avg',
-        'a1_dev',
-        'a2_avg',
-        'a2_dev',
-        'a3_avg',
-        'a3_dev',
-        'a4_avg',
-        'a4_dev',
-        'a5_avg',
-        'a5_dev',
-        'a6_avg',
-        'a6_dev',
-        'a7_avg',
-        'a7_dev',
-        'omega_avg',
-        'omega_dev'
+        'PhiStart',
+        'PhiStop',
+        'PsiStart',
+        'PsiStop',
+        'Observations',
+        'PhiAvg',
+        'PhiDev',
+        'PsiAvg',
+        'PsiDev',
+        'L1Avg',
+        'L1Dev',
+        'L2Avg',
+        'L2Dev',
+        'L3Avg',
+        'L3Dev',
+        'L4Avg',
+        'L4Dev',
+        'L5Avg',
+        'L5Dev',
+        'a1Avg',
+        'a1Dev',
+        'a2Avg',
+        'a2Dev',
+        'a3Avg',
+        'a3Dev',
+        'a4Avg',
+        'a4Dev',
+        'a5Avg',
+        'a5Dev',
+        'a6Avg',
+        'a6Dev',
+        'a7Avg',
+        'a7Dev',
+        'OmeAvg',
+        'OmeDev'
         ]
 
     def __str__(self):
@@ -130,41 +130,41 @@ def create_database(filename):
         db = dict[(phi,psi)]
 
         # assign values to bin
-        db.phi_start = phi
-        db.phi_stop = int(words[1])
-        db.psi_start = psi
-        db.psi_stop = int(words[3])
-        db.observations = int(words[4])
-        db.phi_avg = float(words[5])
-        db.phi_dev = float(words[6])
-        db.psi_avg = float(words[7])
-        db.psi_dev = float(words[8])
-        db.l1_avg = float(words[9])
-        db.l1_dev = float(words[10])
-        db.l2_avg = float(words[11])
-        db.l2_dev = float(words[12])
-        db.l3_avg = float(words[13])
-        db.l3_dev = float(words[14])
-        db.l4_avg = float(words[15])
-        db.l4_dev = float(words[16])
-        db.l5_avg = float(words[17])
-        db.l5_dev = float(words[18])
-        db.a1_avg = float(words[19])
-        db.a1_dev = float(words[20])
-        db.a2_avg = float(words[21])
-        db.a2_dev = float(words[22])
-        db.a3_avg = float(words[23])
-        db.a3_dev = float(words[24])
-        db.a4_avg = float(words[25])
-        db.a4_dev = float(words[26])
-        db.a5_avg = float(words[27])
-        db.a5_dev = float(words[28])
-        db.a6_avg = float(words[29])
-        db.a6_dev = float(words[30])
-        db.a7_avg = float(words[31])
-        db.a7_dev = float(words[32])
-        db.omega_avg = float(words[33])
-        db.omega_dev = float(words[34])
+        db.PhiStart = phi
+        db.PhiStop = int(words[1])
+        db.PsiStart = psi
+        db.PsiStop = int(words[3])
+        db.Observations = int(words[4])
+        db.PhiAvg = float(words[5])
+        db.PhiDev = float(words[6])
+        db.PsiAvg = float(words[7])
+        db.PsiDev = float(words[8])
+        db.L1Avg = float(words[9])
+        db.L1Dev = float(words[10])
+        db.L2Avg = float(words[11])
+        db.L2Dev = float(words[12])
+        db.L3Avg = float(words[13])
+        db.L3Dev = float(words[14])
+        db.L4Avg = float(words[15])
+        db.L4Dev = float(words[16])
+        db.L5Avg = float(words[17])
+        db.L5Dev = float(words[18])
+        db.a1Avg = float(words[19])
+        db.a1Dev = float(words[20])
+        db.a2Avg = float(words[21])
+        db.a2Dev = float(words[22])
+        db.a3Avg = float(words[23])
+        db.a3Dev = float(words[24])
+        db.a4Avg = float(words[25])
+        db.a4Dev = float(words[26])
+        db.a5Avg = float(words[27])
+        db.a5Dev = float(words[28])
+        db.a6Avg = float(words[29])
+        db.a6Dev = float(words[30])
+        db.a7Avg = float(words[31])
+        db.a7Dev = float(words[32])
+        db.OmeAvg = float(words[33])
+        db.OmeDev = float(words[34])
 
     file.close()
     return dict
@@ -173,8 +173,8 @@ def get_binsize(dict):
     """Find bin size for a given database by checking a single bin in it"""
     for i in dict:
         j=dict[i]
-        phi_binsize = j.phi_stop - j.phi_start
-        psi_binsize = j.psi_stop - j.psi_start
+        phi_binsize = j.PhiStop - j.PhiStart
+        psi_binsize = j.PsiStop - j.PsiStart
         break
     return phi_binsize, psi_binsize
 
