@@ -66,45 +66,6 @@ class Usage(Exception):
 class bin(object):
     """This class holds all the info about a bin"""
 
-    # Define legal attributes
-    __slots__ = [
-        'PhiStart',
-        'PhiStop',
-        'PsiStart',
-        'PsiStop',
-        'Observations',
-        'PhiAvg',
-        'PhiDev',
-        'PsiAvg',
-        'PsiDev',
-        'L1Avg',
-        'L1Dev',
-        'L2Avg',
-        'L2Dev',
-        'L3Avg',
-        'L3Dev',
-        'L4Avg',
-        'L4Dev',
-        'L5Avg',
-        'L5Dev',
-        'a1Avg',
-        'a1Dev',
-        'a2Avg',
-        'a2Dev',
-        'a3Avg',
-        'a3Dev',
-        'a4Avg',
-        'a4Dev',
-        'a5Avg',
-        'a5Dev',
-        'a6Avg',
-        'a6Dev',
-        'a7Avg',
-        'a7Dev',
-        'OmeAvg',
-        'OmeDev'
-        ]
-
     def __str__(self):
         """Print all class attributes"""
 
@@ -118,12 +79,13 @@ def create_database(filename):
     file = open(filename, 'r')
     dict = {}
     for line in file:
-        # Don't read the first line
-        if line[0:8] == 'PhiStart':
-            continue
-
         # separate on space
         words = line.split()
+
+        # Create sorted list of available geometry attributes
+        if line[0:8] == 'PhiStart':
+            bin.__slots__= [slot for slot in words]
+            continue
 
         # grab variables we need to set up the class
         phi = int(words[0])
@@ -169,6 +131,13 @@ def create_database(filename):
         db.a7Dev = float(words[32])
         db.OmeAvg = float(words[33])
         db.OmeDev = float(words[34])
+        db.Color = float(words[35])
+        db.X = float(words[36])
+        db.Y = float(words[37])
+        db.XLen = float(words[38])
+        db.YLen = float(words[39])
+        db.XBin = float(words[40])
+        db.YBin = float(words[41])
 
     file.close()
     return dict
