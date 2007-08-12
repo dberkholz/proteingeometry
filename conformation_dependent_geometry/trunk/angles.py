@@ -30,134 +30,66 @@ Design:
 
 import sys
 
+# Database containing fallback, standard values (likely Engh & Huber)
+default = 'default'
+
+# Map of all residue classes and the file names containing their libraries
+# The key names are the valid residue classes to pass in as arguments
 databases = {
 'all' : '1.0-graphdata-all-but-gly-pro-xpro.txt',
 'glycine' : '1.0-graphdata-gly.txt',
 'proline': '1.0-graphdata-pro.txt',
-'preproline': '1.0-graphdata-xpro.txt'
+'preproline': '1.0-graphdata-xpro.txt',
+'default': 'engh-huber.txt'
 }
 
 class bin(object):
     """This class holds all the info about a bin"""
 
-    def __init__(self):
-        """initialize attributes to obviously incorrect values"""
-        self.phi_start = -1
-        self.phi_stop = -1
-        self.psi_start = -1
-        self.psi_stop = -1
-        self.observations = -1
-        self.phi_avg = -1
-        self.phi_dev = -1
-        self.psi_avg = -1
-        self.psi_dev = -1
-        self.l1_avg = -1
-        self.l1_dev = -1
-        self.l2_avg = -1
-        self.l2_dev = -1
-        self.l3_avg = -1
-        self.l3_dev = -1
-        self.l4_avg = -1
-        self.l4_dev = -1
-        self.l5_avg = -1
-        self.l5_dev = -1
-        self.a1_avg = -1
-        self.a1_dev = -1
-        self.a2_avg = -1
-        self.a2_dev = -1
-        self.a3_avg = -1
-        self.a3_dev = -1
-        self.a4_avg = -1
-        self.a4_dev = -1
-        self.a5_avg = -1
-        self.a5_dev = -1
-        self.a6_avg = -1
-        self.a6_dev = -1
-        self.a7_avg = -1
-        self.a7_dev = -1
-        self.omega_avg = -1
-        self.omega_dev = -1
+    # Define legal attributes
+    __slots__ = [
+        'phi_start',
+        'phi_stop',
+        'psi_start',
+        'psi_stop',
+        'observations',
+        'phi_avg',
+        'phi_dev',
+        'psi_avg',
+        'psi_dev',
+        'l1_avg',
+        'l1_dev',
+        'l2_avg',
+        'l2_dev',
+        'l3_avg',
+        'l3_dev',
+        'l4_avg',
+        'l4_dev',
+        'l5_avg',
+        'l5_dev',
+        'a1_avg',
+        'a1_dev',
+        'a2_avg',
+        'a2_dev',
+        'a3_avg',
+        'a3_dev',
+        'a4_avg',
+        'a4_dev',
+        'a5_avg',
+        'a5_dev',
+        'a6_avg',
+        'a6_dev',
+        'a7_avg',
+        'a7_dev',
+        'omega_avg',
+        'omega_dev'
+        ]
 
     def __str__(self):
-        """Set up so we can just print class instances to get the output we
-        want"""
+        """Print all class attributes"""
 
-        # Can we generalize this to just print all class attributes?
-        print \
-              self.phi_start, \
-              self.phi_stop, \
-              self.psi_start, \
-              self.psi_stop, \
-              self.observations, \
-              self.phi_avg, \
-              self.phi_dev, \
-              self.psi_avg, \
-              self.psi_dev, \
-              self.l1_avg, \
-              self.l1_dev, \
-              self.l2_avg, \
-              self.l2_dev, \
-              self.l3_avg, \
-              self.l3_dev, \
-              self.l4_avg, \
-              self.l4_dev, \
-              self.l5_avg, \
-              self.l5_dev, \
-              self.a1_avg, \
-              self.a1_dev, \
-              self.a2_avg, \
-              self.a2_dev, \
-              self.a3_avg, \
-              self.a3_dev, \
-              self.a4_avg, \
-              self.a4_dev, \
-              self.a5_avg, \
-              self.a5_dev, \
-              self.a6_avg, \
-              self.a6_dev, \
-              self.a7_avg, \
-              self.a7_dev, \
-              self.omega_avg, \
-              self.omega_dev
-
-class default_bin(bin):
-    def __init__(self):
-        """initialize attributes to Engh & Huber default values"""
-        self.phi_start = -1
-        self.phi_stop = -1
-        self.psi_start = -1
-        self.psi_stop = -1
-        self.observations = -1
-        self.phi_avg = -1
-        self.phi_dev = -1
-        self.psi_avg = -1
-        self.psi_dev = -1
-        self.l1_avg = -1
-        self.l1_dev = -1
-        self.l2_avg = -1
-        self.l2_dev = -1
-        self.l3_avg = -1
-        self.l3_dev = -1
-        self.l4_avg = -1
-        self.l4_dev = -1
-        self.l5_avg = -1
-        self.l5_dev = -1
-        self.a1_avg = -1
-        self.a1_dev = -1
-        self.a2_avg = -1
-        self.a2_dev = -1
-        self.a3_avg = -1
-        self.a3_dev = -1
-        self.a4_avg = -1
-        self.a4_dev = -1
-        self.a5_avg = -1
-        self.a5_dev = -1
-        self.a6_avg = -1
-        self.a6_dev = -1
-        self.a7_avg = -1
-        self.a7_dev = -1
-        self.omega_avg = -1
-        self.omega_dev = -1
+        list = [str(getattr(self, attr)) for attr in self.__slots__]
+        return ' '.join(list)
 
 def create_database(filename):
     """Create a dictionary matrix holding all of the bins
@@ -191,6 +123,32 @@ def create_database(filename):
         db.phi_dev = float(words[6])
         db.psi_avg = float(words[7])
         db.psi_dev = float(words[8])
+        db.l1_avg = float(words[9])
+        db.l1_dev = float(words[10])
+        db.l2_avg = float(words[11])
+        db.l2_dev = float(words[12])
+        db.l3_avg = float(words[13])
+        db.l3_dev = float(words[14])
+        db.l4_avg = float(words[15])
+        db.l4_dev = float(words[16])
+        db.l5_avg = float(words[17])
+        db.l5_dev = float(words[18])
+        db.a1_avg = float(words[19])
+        db.a1_dev = float(words[20])
+        db.a2_avg = float(words[21])
+        db.a2_dev = float(words[22])
+        db.a3_avg = float(words[23])
+        db.a3_dev = float(words[24])
+        db.a4_avg = float(words[25])
+        db.a4_dev = float(words[26])
+        db.a5_avg = float(words[27])
+        db.a5_dev = float(words[28])
+        db.a6_avg = float(words[29])
+        db.a6_dev = float(words[30])
+        db.a7_avg = float(words[31])
+        db.a7_dev = float(words[32])
+        db.omega_avg = float(words[33])
+        db.omega_dev = float(words[34])
 
     file.close()
     return dict
@@ -234,9 +192,6 @@ if __name__ == '__main__':
 #            print "phi, psi = ", phi, psi
 #            print dblist[dbname]
             print dblist[dbname][(phi,psi)]
-        except:
-            try:
-                default = default_bin()
-                print default
-            except TypeError:
-                pass
+        except KeyError:
+            print "Defaulting to library value"
+            print dblist[default][(phi,psi)]
