@@ -222,6 +222,14 @@ def main(argv=None):
 #            vprint("Database list = ", dblist)
             vprint("Database name = " + dbname)
 #            vprint("Database = ", dblist[dbname])
+
+            # Print field names
+            if verbose:
+                for i in dblist[dbname]:
+                    j=dblist[dbname][i]
+                    print '\t'.join([slot for slot in j.__slots__])
+                    break
+
             phi_binsize, psi_binsize = get_binsize(dblist[dbname])
             print dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
         except KeyError:
