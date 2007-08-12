@@ -12,7 +12,8 @@ Author: Donnie Berkholz <berkhold@science.oregonstate.edu>
 Design:
  Implement as a 2D dictionary matrix of bins. Bins will be classes holding
  all info about that bin. You can look up a bin by passing its phi,psi pair
- into the dictionary matrix. Dictionary keys will be tuples of phi,psi pairs.
+ into the dictionary matrix. Dictionary keys will be tuples of phi,psi
+ pairs.
 
  Databases will be read into the dictionary matrices from files. The best
  format will be one file per residue class (proline, glycine, preproline,
