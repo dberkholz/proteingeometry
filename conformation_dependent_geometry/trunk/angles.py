@@ -10,7 +10,7 @@ Author: Donnie Berkholz <berkhold@science.oregonstate.edu>
  P. Andrew Karplus laboratory, Oregon State University
 
 Design:
- Implement as a 2D dictionary matrix of bins. Bins will be classes holding
+ Implement as 2D dictionary matrices of bins. Bins will be classes holding
  all info about that bin. You can look up a bin by passing its phi,psi pair
  into the dictionary matrix. Dictionary keys will be tuples of phi,psi
  pairs.
@@ -25,8 +25,8 @@ Design:
  Angles passed in as arguments will be rounded down to the nearest bin start
  and then passed to the matrix to return a bin class.
 
- We can use the has_key() dictionary method to check whether we have known
- database values, and if not, return the template of Engh & Huber values.
+ If we don't have known database values, we will return the template Engh &
+ Huber values.
 """
 
 import sys
