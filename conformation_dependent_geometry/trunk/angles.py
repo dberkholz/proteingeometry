@@ -154,9 +154,24 @@ def create_database(filename):
     file.close()
     return dict
 
+def get_binsize(dict):
+    """Find bin size for a given database by checking a single bin in it"""
+    for i in dict:
+        j=dict[i]
+        phi_binsize = j.phi_stop - j.phi_start
+        psi_binsize = j.psi_stop - j.psi_start
+        break
+    return phi_binsize, psi_binsize
+
 def usage():
     """Print usage message and quit"""
     print "angles <residue> <phi> <psi>"
+    print
+    print "Unknown residue names will use the 'all' residue class."
+    print "The 'default' residue class is Engh & Huber values."
+    print "Available residue classes:",
+    for db in databases:
+        print db,
     sys.exit(1)
 
 if __name__ == '__main__':
@@ -164,13 +179,10 @@ if __name__ == '__main__':
     if len(sys.argv) != 4:
         usage()
     else:
-        residue = sys.argv[1]
-        phi = sys.argv[2]
-        psi = sys.argv[3]
-
-        # round phi/psi down to nearest <binsize>
-        phi = int(phi)/10*10
-        psi = int(psi)/10*10
+        residue = sys.argv[1].lower()
+        # int() can't convert from string and from float at the same time
+        phi = int(float(sys.argv[2]))
+        psi = int(float(sys.argv[3]))
 
         # Build up databases
         dblist = {}
@@ -192,7 +204,23 @@ if __name__ == '__main__':
             print "dbname = " + dbname
 #            print "phi, psi = ", phi, psi
 #            print dblist[dbname]
-            print dblist[dbname][(phi,psi)]
+            phi_binsize, psi_binsize = get_binsize(dblist[dbname])
+            print dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
         except KeyError:
             print "Defaulting to library value"
-            print dblist[default][(phi,psi)]
+
+            # Special code to deal with huge binsizes
+            # e.g., 360x360 as in the default library
+            phi_binsize, psi_binsize = get_binsize(dblist[default])
+            phi_div, phi_mod = divmod(abs(phi), phi_binsize)
+            psi_div, psi_mod = divmod(abs(psi), psi_binsize)
+            if phi_div == 0:
+                phi_r = 180 - phi_binsize
+            else:
+                phi_r = phi-phi_mod
+            if psi_div == 0:
+                psi_r = 180 - psi_binsize
+            else:
+                psi_r = psi-psi_mod
+
+            print dblist[default][(phi_r, psi_r)]
