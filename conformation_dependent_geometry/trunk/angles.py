@@ -76,9 +76,8 @@ def create_database(filename):
     """Create a dictionary matrix holding all of the bins
 
     Returns the dictionary matrix"""
-    file = open(filename, 'r')
     dbdict = {}
-    for line in file:
+    for line in open(filename, 'r'):
         # separate on space
         words = line.split()
 
@@ -103,7 +102,6 @@ def create_database(filename):
                 words[i] = int(words[i])
             setattr(db, slot, words[i])
 
-    file.close()
     return dbdict
 
 def get_binsize(dbdict):
