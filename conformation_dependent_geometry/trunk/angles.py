@@ -117,7 +117,20 @@ def get_binsize(dict):
         break
     return phi_binsize, psi_binsize
 
+def get_fields(database):
+    # Print field names
+    if verbose:
+        for i in database:
+            j=database[i]
+            fields = '\t'.join([slot for slot in j.__slots__])
+            break
+        return fields
+
 def get_geometry(dblist, residue, phi, psi):
+    """Get the geometry info for a specific residue/phi/psi setting
+
+    Return the field names and the geometry."""
+
     # Decide which database to use
     for database in databases:
         if residue == database:
@@ -125,12 +138,7 @@ def get_geometry(dblist, residue, phi, psi):
         else:
             dbname='all'
 
-    # Print field names
-    if verbose:
-        for i in dblist[dbname]:
-            j=dblist[dbname][i]
-            fields = '\t'.join([slot for slot in j.__slots__])
-            break
+    fields = get_fields(dblist[dbname])
 
     try:
         #vprint("Database list = ", dblist)
@@ -160,6 +168,8 @@ def get_geometry(dblist, residue, phi, psi):
         return fields, dblist[dbname][(phi_r, psi_r)]
 
 def vprint(*args):
+    """Verbose print; only print if verbosity is enabled."""
+
     if verbose:
         for arg in args:
             print >> sys.stderr, arg
@@ -193,7 +203,8 @@ def main(argv=None):
             dblist[database] = create_database(databases[database])
 
         fields, geometry = get_geometry(dblist, residue, phi, psi)
-        print fields
+        if fields:
+            print fields
         print geometry
 
     except Usage:
