@@ -82,7 +82,7 @@ def create_database(filename):
 
         # Create sorted list of available geometry attributes
         if line.startswith('PhiStart'):
-            bin.var_order= [slot for slot in words]
+            bin.var_order = words
             continue
 
         # grab variables we need to set up the class
