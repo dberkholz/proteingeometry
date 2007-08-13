@@ -62,23 +62,6 @@ parser.add_option( \
         help='Use verbose output; defaults to %default')
 optlist, args = parser.parse_args()
 
-class Usage(Exception):
-    """This class gives a usage message"""
-
-    def __init__(self):
-        saveout = sys.stdout
-        sys.stdout = sys.stderr
-        print "angles [-v|--parser.verbose] <residue> <phi> <psi>"
-        print
-        print "Unknown residue names will use the 'all' residue class."
-        print "The 'default' residue class is Engh & Huber values."
-        print "Available residue classes:",
-        for db in databases:
-            print db,
-        print
-        sys.stdout = saveout
-
-
 class bin(object):
     """This class holds all the info about a bin"""
 
