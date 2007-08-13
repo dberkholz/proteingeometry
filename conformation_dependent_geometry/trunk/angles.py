@@ -105,10 +105,9 @@ def create_database(filename):
 
 def get_binsize(dbdict):
     """Find bin size for a given database by checking a single bin in it"""
-    for i in dbdict:
-        j=dbdict[i]
-        phi_binsize = j.PhiStop - j.PhiStart
-        psi_binsize = j.PsiStop - j.PsiStart
+    for v in dbdict.itervalues():
+        phi_binsize = v.PhiStop - v.PhiStart
+        psi_binsize = v.PsiStop - v.PsiStart
         break
     return phi_binsize, psi_binsize
 
