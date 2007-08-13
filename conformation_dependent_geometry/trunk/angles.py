@@ -117,6 +117,47 @@ def get_binsize(dict):
         break
     return phi_binsize, psi_binsize
 
+def print_geometry(dblist, residue, phi, psi):
+    # Decide which database to use
+    for database in databases:
+        if residue == database:
+            dbname=database
+        else:
+            dbname='all'
+
+    try:
+        #vprint("Database list = ", dblist)
+        vprint("Database name = " + dbname)
+        #vprint("Database = ", dblist[dbname])
+
+        # Print field names
+        if verbose:
+            for i in dblist[dbname]:
+                j=dblist[dbname][i]
+                print '\t'.join([slot for slot in j.__slots__])
+                break
+
+        phi_binsize, psi_binsize = get_binsize(dblist[dbname])
+        print dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
+    except KeyError:
+        vprint("Defaulting to library value")
+
+        # Special code to deal with huge binsizes
+        # e.g., 360x360 as in the default library
+        phi_binsize, psi_binsize = get_binsize(dblist[default])
+        phi_div, phi_mod = divmod(abs(phi), phi_binsize)
+        psi_div, psi_mod = divmod(abs(psi), psi_binsize)
+        if phi_div == 0:
+            phi_r = 180 - phi_binsize
+        else:
+            phi_r = phi-phi_mod
+        if psi_div == 0:
+            psi_r = 180 - psi_binsize
+        else:
+            psi_r = psi-psi_mod
+
+        print dblist[default][(phi_r, psi_r)]
+
 def vprint(*args):
     if verbose:
         for arg in args:
@@ -150,45 +191,8 @@ def main(argv=None):
                   + " with file " + databases[database])
             dblist[database] = create_database(databases[database])
 
-        # Decide which database to use
-        for database in databases:
-            if residue == database:
-                dbname=database
-            else:
-                dbname='all'
+        print_geometry(dblist, residue, phi, psi)
 
-        try:
-#            vprint("Database list = ", dblist)
-            vprint("Database name = " + dbname)
-#            vprint("Database = ", dblist[dbname])
-
-            # Print field names
-            if verbose:
-                for i in dblist[dbname]:
-                    j=dblist[dbname][i]
-                    print '\t'.join([slot for slot in j.__slots__])
-                    break
-
-            phi_binsize, psi_binsize = get_binsize(dblist[dbname])
-            print dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
-        except KeyError:
-            vprint("Defaulting to library value")
-
-            # Special code to deal with huge binsizes
-            # e.g., 360x360 as in the default library
-            phi_binsize, psi_binsize = get_binsize(dblist[default])
-            phi_div, phi_mod = divmod(abs(phi), phi_binsize)
-            psi_div, psi_mod = divmod(abs(psi), psi_binsize)
-            if phi_div == 0:
-                phi_r = 180 - phi_binsize
-            else:
-                phi_r = phi-phi_mod
-            if psi_div == 0:
-                psi_r = 180 - psi_binsize
-            else:
-                psi_r = psi-psi_mod
-
-            print dblist[default][(phi_r, psi_r)]
     except Usage:
         return 2
 
