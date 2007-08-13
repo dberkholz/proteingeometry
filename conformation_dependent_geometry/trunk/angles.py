@@ -108,8 +108,7 @@ def get_binsize(dbdict):
     for v in dbdict.itervalues():
         phi_binsize = v.PhiStop - v.PhiStart
         psi_binsize = v.PsiStop - v.PsiStart
-        break
-    return phi_binsize, psi_binsize
+        return phi_binsize, psi_binsize
 
 def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
     """Find the default bin size, using specialized code for large bins"""
