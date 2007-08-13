@@ -44,7 +44,7 @@ databases = {
 'default': 'engh-huber.txt'
 }
 
-dblist = ' '.join(db for db in databases)
+dblist = ' '.join(databases)
 usage = """usage: %prog [options] <residue> <phi> <psi>
 
 Unknown residue names will use the 'all' residue class.
@@ -68,8 +68,7 @@ class bin(object):
     def __str__(self):
         """Print all class attributes"""
 
-        list = [str(getattr(self, attr)) for attr in self.var_order]
-        return '\t'.join(list)
+        return '\t'.join(str(getattr(self, attr)) for attr in self.var_order)
 
 def create_database(filename):
     """Create a dictionary matrix holding all of the bins
@@ -131,8 +130,7 @@ def get_fields(database):
         for i in sorted(database):
             j=database[i]
             fields = '\t'.join(j.var_order)
-            break
-        return fields
+            return fields
 
 def get_geometry(dblist, residue, phi, psi):
     """Get the geometry info for a specific residue/phi/psi setting
