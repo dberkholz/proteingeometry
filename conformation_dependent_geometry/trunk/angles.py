@@ -117,7 +117,7 @@ def get_binsize(dict):
         break
     return phi_binsize, psi_binsize
 
-def print_geometry(dblist, residue, phi, psi):
+def get_geometry(dblist, residue, phi, psi):
     # Decide which database to use
     for database in databases:
         if residue == database:
@@ -125,20 +125,20 @@ def print_geometry(dblist, residue, phi, psi):
         else:
             dbname='all'
 
+    # Print field names
+    if verbose:
+        for i in dblist[dbname]:
+            j=dblist[dbname][i]
+            fields = '\t'.join([slot for slot in j.__slots__])
+            break
+
     try:
         #vprint("Database list = ", dblist)
         vprint("Database name = " + dbname)
         #vprint("Database = ", dblist[dbname])
 
-        # Print field names
-        if verbose:
-            for i in dblist[dbname]:
-                j=dblist[dbname][i]
-                print '\t'.join([slot for slot in j.__slots__])
-                break
-
         phi_binsize, psi_binsize = get_binsize(dblist[dbname])
-        print dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
+        return fields, dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
     except KeyError:
         vprint("Defaulting to library value")
 
@@ -156,7 +156,7 @@ def print_geometry(dblist, residue, phi, psi):
         else:
             psi_r = psi-psi_mod
 
-        print dblist[default][(phi_r, psi_r)]
+        return fields, dblist[default][(phi_r, psi_r)]
 
 def vprint(*args):
     if verbose:
@@ -191,7 +191,9 @@ def main(argv=None):
                   + " with file " + databases[database])
             dblist[database] = create_database(databases[database])
 
-        print_geometry(dblist, residue, phi, psi)
+        fields, geometry = get_geometry(dblist, residue, phi, psi)
+        print fields
+        print geometry
 
     except Usage:
         return 2
