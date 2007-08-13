@@ -128,9 +128,9 @@ def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
 def get_fields(database):
     """Return field names"""
     if optlist.verbose:
-        for i in sorted(database):
-            j=database[i]
-            fields = '\t'.join(j.var_order)
+        database.keys().sort()
+        for v in database.itervalues():
+            fields = '\t'.join(v.var_order)
             return fields
 
 def get_geometry(dblist, residue, phi, psi):
