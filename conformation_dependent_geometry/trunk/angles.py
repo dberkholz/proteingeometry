@@ -77,7 +77,7 @@ def create_database(filename):
 
     Returns the dictionary matrix"""
     file = open(filename, 'r')
-    dict = {}
+    dbdict = {}
     for line in file:
         # separate on space
         words = line.split()
@@ -92,26 +92,24 @@ def create_database(filename):
         psi = int(words[2])
 
         # instantiate the class and give it a short name
-        dict[(phi,psi)] = bin()
-        db = dict[(phi,psi)]
+        dbdict[(phi,psi)] = bin()
+        db = dbdict[(phi,psi)]
 
         # assign values to bin
-        i=0
-        for slot in db.__slots__:
+        for i, slot in enumerate(db.__slots__):
             if '.' in words[i]:
                 words[i] = float(words[i])
             else:
                 words[i] = int(words[i])
             setattr(db, slot, words[i])
-            i += 1
 
     file.close()
-    return dict
+    return dbdict
 
-def get_binsize(dict):
+def get_binsize(dbdict):
     """Find bin size for a given database by checking a single bin in it"""
-    for i in dict:
-        j=dict[i]
+    for i in dbdict:
+        j=dbdict[i]
         phi_binsize = j.PhiStop - j.PhiStart
         psi_binsize = j.PsiStop - j.PsiStart
         break
@@ -122,11 +120,11 @@ def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
 
     phi_div, phi_mod = divmod(abs(phi), phi_binsize)
     psi_div, psi_mod = divmod(abs(psi), psi_binsize)
-    if phi_div == 0:
+    if not phi_div:
         phi_r = 180 - phi_binsize
     else:
         phi_r = phi-phi_mod
-    if psi_div == 0:
+    if not psi_div:
         psi_r = 180 - psi_binsize
     else:
         psi_r = psi-psi_mod
@@ -135,9 +133,9 @@ def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
 def get_fields(database):
     # Print field names
     if verbose:
-        for i in database:
+        for i in sorted(database):
             j=database[i]
-            fields = '\t'.join([slot for slot in j.__slots__])
+            fields = '\t'.join(j.__slots__)
             break
         return fields
 
