@@ -96,48 +96,14 @@ def create_database(filename):
         db = dict[(phi,psi)]
 
         # assign values to bin
-        db.PhiStart = phi
-        db.PhiStop = int(words[1])
-        db.PsiStart = psi
-        db.PsiStop = int(words[3])
-        db.Observations = int(words[4])
-        db.PhiAvg = words[5]
-        db.PhiDev = words[6]
-        db.PsiAvg = words[7]
-        db.PsiDev = words[8]
-        db.L1Avg = words[9]
-        db.L1Dev = words[10]
-        db.L2Avg = words[11]
-        db.L2Dev = words[12]
-        db.L3Avg = words[13]
-        db.L3Dev = words[14]
-        db.L4Avg = words[15]
-        db.L4Dev = words[16]
-        db.L5Avg = words[17]
-        db.L5Dev = words[18]
-        db.a1Avg = words[19]
-        db.a1Dev = words[20]
-        db.a2Avg = words[21]
-        db.a2Dev = words[22]
-        db.a3Avg = words[23]
-        db.a3Dev = words[24]
-        db.a4Avg = words[25]
-        db.a4Dev = words[26]
-        db.a5Avg = words[27]
-        db.a5Dev = words[28]
-        db.a6Avg = words[29]
-        db.a6Dev = words[30]
-        db.a7Avg = words[31]
-        db.a7Dev = words[32]
-        db.OmeAvg = words[33]
-        db.OmeDev = words[34]
-        db.Color = int(words[35])
-        db.X = int(words[36])
-        db.Y = int(words[37])
-        db.XLen = int(words[38])
-        db.YLen = int(words[39])
-        db.XBin = int(words[40])
-        db.YBin = int(words[41])
+        i=0
+        for slot in db.__slots__:
+            if '.' in words[i]:
+                words[i] = float(words[i])
+            else:
+                words[i] = int(words[i])
+            setattr(db, slot, words[i])
+            i += 1
 
     file.close()
     return dict
