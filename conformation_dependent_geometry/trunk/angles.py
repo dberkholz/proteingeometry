@@ -85,7 +85,7 @@ class bin(object):
     def __str__(self):
         """Print all class attributes"""
 
-        list = [str(getattr(self, attr)) for attr in self.__slots__]
+        list = [str(getattr(self, attr)) for attr in self.var_order]
         return '\t'.join(list)
 
 def create_database(filename):
@@ -99,7 +99,7 @@ def create_database(filename):
 
         # Create sorted list of available geometry attributes
         if line.startswith('PhiStart'):
-            bin.__slots__= [slot for slot in words]
+            bin.var_order= [slot for slot in words]
             continue
 
         # grab variables we need to set up the class
@@ -111,7 +111,7 @@ def create_database(filename):
         db = dbdict[(phi,psi)]
 
         # assign values to bin
-        for i, slot in enumerate(db.__slots__):
+        for i, slot in enumerate(db.var_order):
             if '.' in words[i]:
                 words[i] = float(words[i])
             else:
@@ -149,7 +149,7 @@ def get_fields(database):
     if optlist.verbose:
         for i in sorted(database):
             j=database[i]
-            fields = '\t'.join(j.__slots__)
+            fields = '\t'.join(j.var_order)
             break
         return fields
 
