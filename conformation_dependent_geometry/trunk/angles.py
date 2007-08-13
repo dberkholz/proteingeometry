@@ -44,6 +44,7 @@ databases = {
 'default': 'engh-huber.txt'
 }
 
+# Option handling
 dblist = ' '.join(databases)
 usage = """usage: %prog [options] <residue> <phi> <psi>
 
@@ -125,7 +126,7 @@ def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
     return phi_r, psi_r
 
 def get_fields(database):
-    # Print field names
+    """Return field names"""
     if optlist.verbose:
         for i in sorted(database):
             j=database[i]
