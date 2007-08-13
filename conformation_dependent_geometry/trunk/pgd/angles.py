@@ -29,19 +29,23 @@ Design:
  Huber values.
 """
 
-import sys, optparse
+import os, sys, optparse
+
+# Program version
+version = '0.1'
 
 # Database containing fallback, standard values (likely Engh & Huber)
 default = 'default'
 
 # Map of all residue classes and the file names containing their libraries
 # The key names are the valid residue classes to pass in as arguments
+moduledir = os.path.dirname(__file__)
 databases = {
-'all' : '1.0-graphdata-all-but-gly-pro-xpro.txt',
-'glycine' : '1.0-graphdata-gly.txt',
-'proline': '1.0-graphdata-pro.txt',
-'preproline': '1.0-graphdata-xpro.txt',
-'default': 'engh-huber.txt'
+'all' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro.txt',
+'glycine' : moduledir + '/data/1.0-graphdata-gly.txt',
+'proline': moduledir + '/data/1.0-graphdata-pro.txt',
+'preproline': moduledir + '/data/1.0-graphdata-xpro.txt',
+'default': moduledir + '/data/engh-huber.txt'
 }
 
 # Option handling
@@ -52,7 +56,7 @@ Unknown residue names will use the 'all' residue class.
 The 'default' residue class is Engh & Huber values.
 Available residue classes: """ + dblist
 
-parser = optparse.OptionParser()
+parser = optparse.OptionParser(version='%prog ' + version)
 parser.disable_interspersed_args()
 parser.set_usage(usage)
 parser.set_defaults(verbose=False)

@@ -1,0 +1,5 @@
+To install the Protein Geometry Database library-access modules, just run:
+
+python setup.py install
+
+See `pgd-angles --help` for more information.
