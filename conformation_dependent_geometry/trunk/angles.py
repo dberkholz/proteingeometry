@@ -141,10 +141,11 @@ def get_geometry(dblist, residue, phi, psi):
         return fields, dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
     except KeyError:
         vprint("Defaulting to library value")
+        dbname=default
 
         # Special code to deal with huge binsizes
         # e.g., 360x360 as in the default library
-        phi_binsize, psi_binsize = get_binsize(dblist[default])
+        phi_binsize, psi_binsize = get_binsize(dblist[dbname])
         phi_div, phi_mod = divmod(abs(phi), phi_binsize)
         psi_div, psi_mod = divmod(abs(psi), psi_binsize)
         if phi_div == 0:
@@ -156,7 +157,7 @@ def get_geometry(dblist, residue, phi, psi):
         else:
             psi_r = psi-psi_mod
 
-        return fields, dblist[default][(phi_r, psi_r)]
+        return fields, dblist[dbname][(phi_r, psi_r)]
 
 def vprint(*args):
     if verbose:
