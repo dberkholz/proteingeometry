@@ -82,7 +82,7 @@ def create_database(filename):
         words = line.split()
 
         # Create sorted list of available geometry attributes
-        if line[0:8] == 'PhiStart':
+        if line.startswith('PhiStart'):
             bin.__slots__= [slot for slot in words]
             continue
 
