@@ -117,6 +117,21 @@ def get_binsize(dict):
         break
     return phi_binsize, psi_binsize
 
+def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
+    """Find the default bin size, using specialized code for large bins"""
+
+    phi_div, phi_mod = divmod(abs(phi), phi_binsize)
+    psi_div, psi_mod = divmod(abs(psi), psi_binsize)
+    if phi_div == 0:
+        phi_r = 180 - phi_binsize
+    else:
+        phi_r = phi-phi_mod
+    if psi_div == 0:
+        psi_r = 180 - psi_binsize
+    else:
+        psi_r = psi-psi_mod
+    return phi_r, psi_r
+
 def get_fields(database):
     # Print field names
     if verbose:
@@ -151,20 +166,8 @@ def get_geometry(dblist, residue, phi, psi):
         vprint("Defaulting to library value")
         dbname=default
 
-        # Special code to deal with huge binsizes
-        # e.g., 360x360 as in the default library
         phi_binsize, psi_binsize = get_binsize(dblist[dbname])
-        phi_div, phi_mod = divmod(abs(phi), phi_binsize)
-        psi_div, psi_mod = divmod(abs(psi), psi_binsize)
-        if phi_div == 0:
-            phi_r = 180 - phi_binsize
-        else:
-            phi_r = phi-phi_mod
-        if psi_div == 0:
-            psi_r = 180 - psi_binsize
-        else:
-            psi_r = psi-psi_mod
-
+        phi_r, psi_r = get_default_binsize(phi, psi, phi_binsize, psi_binsize)
         return fields, dblist[dbname][(phi_r, psi_r)]
 
 def vprint(*args):
