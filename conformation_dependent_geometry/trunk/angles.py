@@ -29,7 +29,7 @@ Design:
  Huber values.
 """
 
-import sys, getopt
+import sys, optparse
 
 # Database containing fallback, standard values (likely Engh & Huber)
 default = 'default'
@@ -44,7 +44,23 @@ databases = {
 'default': 'engh-huber.txt'
 }
 
-verbose = False
+dblist = ' '.join(db for db in databases)
+usage = """usage: %prog [options] <residue> <phi> <psi>
+
+Unknown residue names will use the 'all' residue class.
+The 'default' residue class is Engh & Huber values.
+Available residue classes: """ + dblist
+
+parser = optparse.OptionParser()
+parser.disable_interspersed_args()
+parser.set_usage(usage)
+parser.set_defaults(verbose=False)
+parser.add_option( \
+    '-v', '--verbose', \
+        action='store_true', \
+        dest='verbose', \
+        help='Use verbose output; defaults to %default')
+optlist, args = parser.parse_args()
 
 class Usage(Exception):
     """This class gives a usage message"""
@@ -52,7 +68,7 @@ class Usage(Exception):
     def __init__(self):
         saveout = sys.stdout
         sys.stdout = sys.stderr
-        print "angles [-v|--verbose] <residue> <phi> <psi>"
+        print "angles [-v|--parser.verbose] <residue> <phi> <psi>"
         print
         print "Unknown residue names will use the 'all' residue class."
         print "The 'default' residue class is Engh & Huber values."
@@ -130,7 +146,7 @@ def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
 
 def get_fields(database):
     # Print field names
-    if verbose:
+    if optlist.verbose:
         for i in sorted(database):
             j=database[i]
             fields = '\t'.join(j.__slots__)
@@ -169,45 +185,33 @@ def get_geometry(dblist, residue, phi, psi):
 def vprint(*args):
     """Verbose print; only print if verbosity is enabled."""
 
-    if verbose:
+    if optlist.verbose:
         for arg in args:
             print >> sys.stderr, arg
 
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-    try:
-        try:
-            optlist, args = getopt.getopt(argv[1:], 'v', ['verbose'])
-        except getopt.GetoptError:
-            raise Usage
-        for o, a in optlist:
-            if o == "-v" or o == "--verbose":
-                global verbose
-                verbose = True
 
-        if len(args) != 3:
-            raise Usage
-        else:
-            residue = args[0].lower()
-            # int() can't convert from string and from float at the same time
-            phi = int(float(args[1]))
-            psi = int(float(args[2]))
+    if len(args) != 3:
+        parser.error('incorrect number of arguments')
+    else:
+        residue = args[0].lower()
+        # int() can't convert from string and from float at the same time
+        phi = int(float(args[1]))
+        psi = int(float(args[2]))
 
-        # Build up databases
-        dblist = {}
-        for database in databases:
-            vprint("Creating database " + database \
-                  + " with file " + databases[database])
-            dblist[database] = create_database(databases[database])
+    # Build up databases
+    dblist = {}
+    for database in databases:
+        vprint("Creating database " + database \
+                   + " with file " + databases[database])
+        dblist[database] = create_database(databases[database])
 
-        fields, geometry = get_geometry(dblist, residue, phi, psi)
-        if fields:
-            print fields
-        print geometry
-
-    except Usage:
-        return 2
+    fields, geometry = get_geometry(dblist, residue, phi, psi)
+    if fields:
+        print fields
+    print geometry
 
 if __name__ == '__main__':
     # run as a program
