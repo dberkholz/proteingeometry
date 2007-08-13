@@ -189,10 +189,7 @@ def vprint(*args):
         for arg in args:
             print >> sys.stderr, arg
 
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv
-
+def main(argv):
     if len(args) != 3:
         parser.error('incorrect number of arguments')
     else:
@@ -215,4 +212,4 @@ def main(argv=None):
 
 if __name__ == '__main__':
     # run as a program
-    sys.exit(main())
+    sys.exit(main(sys.argv))
