@@ -121,6 +121,15 @@ def create_database(filename):
 
     return dbdict
 
+def create_all_databases(db_names):
+    """Build up databases"""
+    dbdict = {}
+    for database in db_names:
+        vprint("Creating database " + database \
+                   + " with file " + db_names[database])
+        dbdict[database] = create_database(db_names[database])
+    return dbdict
+
 def get_binsize(dbdict):
     """Find bin size for a given database by checking a single bin in it"""
     for v in dbdict.itervalues():
@@ -196,14 +205,9 @@ def main(argv):
         phi = int(float(args[1]))
         psi = int(float(args[2]))
 
-    # Build up databases
-    dblist = {}
-    for database in databases:
-        vprint("Creating database " + database \
-                   + " with file " + databases[database])
-        dblist[database] = create_database(databases[database])
+    dbdict = create_all_databases(databases)
 
-    fields, geometry = get_geometry(dblist, residue, phi, psi)
+    fields, geometry = get_geometry(dbdict, residue, phi, psi)
     if fields:
         print fields
     print geometry
