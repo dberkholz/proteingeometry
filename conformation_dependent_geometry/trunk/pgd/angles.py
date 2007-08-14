@@ -73,16 +73,36 @@ which installs with the documentation."""
 parser = optparse.OptionParser(version='%prog ' + version)
 parser.disable_interspersed_args()
 parser.set_usage(usage)
-parser.set_defaults(verbose=False)
+parser.set_defaults(verbose=False, add_empty=False)
 parser.add_option( \
     '-v', '--verbose', \
         action='store_true', \
         dest='verbose', \
         help='Use verbose output; defaults to %default')
+parser.add_option( \
+    '-e', '--add-empty', \
+        action='store_true', \
+        dest='add_empty', \
+        help='Add default geometry to zero-observation bins; defaults to %default')
 optlist, args = parser.parse_args()
 
 class bin(object):
-    """This class holds all the info about a bin"""
+    """This class holds all the info about a bin. Bins cannot be instantiated
+    without first filling in var_order. See create_database() for that code."""
+
+    def __init__(self, words):
+        """Fill in a bin, reading geometry info from words"""
+
+        if not len(words):
+            return
+
+        # assign values to bin
+        for i, slot in enumerate(self.var_order):
+            if '.' in words[i]:
+                words[i] = float(words[i])
+            else:
+                words[i] = int(words[i])
+            setattr(self, slot, words[i])
 
     def __str__(self):
         """Print all class attributes"""
@@ -107,17 +127,8 @@ def create_database(filename):
         phi = int(words[0])
         psi = int(words[2])
 
-        # instantiate the class and give it a short name
-        dbdict[(phi,psi)] = bin()
-        db = dbdict[(phi,psi)]
-
-        # assign values to bin
-        for i, slot in enumerate(db.var_order):
-            if '.' in words[i]:
-                words[i] = float(words[i])
-            else:
-                words[i] = int(words[i])
-            setattr(db, slot, words[i])
+        # instantiate the class and fill it
+        dbdict[(phi,psi)] = bin(words)
 
     return dbdict
 
@@ -180,6 +191,7 @@ def get_geometry(dblist, residue, phi, psi):
         #vprint("Database = ", dblist[dbname])
 
         phi_binsize, psi_binsize = get_binsize(dblist[dbname])
+        vprint("binsizes:", phi_binsize, psi_binsize)
         return fields, dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
     except KeyError:
         vprint("Defaulting to library value")
@@ -189,12 +201,42 @@ def get_geometry(dblist, residue, phi, psi):
         phi_r, psi_r = get_default_binsize(phi, psi, phi_binsize, psi_binsize)
         return fields, dblist[dbname][(phi_r, psi_r)]
 
+def add_empty_bins(dbdict):
+    """Adds default geometry info to zero-observation bins"""
+    # FIXME: Should we first drop back to 'all', then 'default'?
+
+    # Iterate over all bins from -180 to +180 using binsize chunks
+    phi_def_binsize, psi_def_binsize = get_binsize(dbdict[default])
+    for dbname in dbdict:
+        if dbname == default:
+            continue
+        vprint("Adding zero-observation bins with default values to", dbname)
+        db = dbdict[dbname]
+        phi_binsize, psi_binsize = get_binsize(db)
+        for phi in xrange(-180, +181, phi_binsize):
+            for psi in xrange(-180, +181, psi_binsize):
+                # Check whether a bin instance exists
+                # If not, make one with defaults
+                if not (phi, psi) in db:
+                    phi_def, psi_def = get_default_binsize( \
+                        phi, psi, phi_def_binsize, psi_def_binsize)
+                    db[(phi, psi)] = bin([])
+                    db[(phi, psi)] = dbdict[default][(phi_def, psi_def)]
+                    # Fix phi/psi; they were the values from 'default'
+                    # Otherwise binsize calculation is wrong
+                    db[(phi, psi)].PhiStart = phi
+                    db[(phi, psi)].PsiStart = psi
+                    db[(phi, psi)].PhiStop = phi + phi_binsize
+                    db[(phi, psi)].PsiStop = psi + psi_binsize
+    return dbdict
+
 def vprint(*args):
     """Verbose print; only print if verbosity is enabled."""
 
     if optlist.verbose:
         for arg in args:
-            print >> sys.stderr, arg
+            print >> sys.stderr, arg,
+        print
 
 def main(argv):
     if len(args) != 3:
@@ -207,6 +249,10 @@ def main(argv):
 
     dbdict = create_all_databases(databases)
 
+    if optlist.add_empty:
+        dbdict = add_empty_bins(dbdict)
+
+    vprint("phi, psi:", phi, psi)
     fields, geometry = get_geometry(dbdict, residue, phi, psi)
     if fields:
         print fields
