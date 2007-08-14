@@ -1,3 +1,4 @@
 include README
+include *.jpg
 include *.py
 include pgd/data/*.txt

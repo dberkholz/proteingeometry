@@ -49,12 +49,26 @@ databases = {
 }
 
 # Option handling
-dblist = ' '.join(databases)
-usage = """usage: %prog [options] <residue> <phi> <psi>
+dblist = ' '.join(sorted(databases))
+usage = """usage: %prog [options] <residue class> <phi> <psi>
 
-Unknown residue names will use the 'all' residue class.
-The 'default' residue class is Engh & Huber values.
-Available residue classes: """ + dblist
+Residue classes:
+ Available classes: """ + dblist + """
+ 'all': every residue that doesn't have its own class.
+ 'preproline': residues preceding proline.
+ 'default': Engh & Huber values
+
+ Unknown residue classes will use the 'all' residue class. This can be useful
+ if you want to just pass in the residue name regardless of whether it's a
+ class. When no observations exist in the original class, the 'default' class
+ is used as a fallback. This is indicated by an observations count of -1.
+
+Angles:
+ Both angles 'phi' and 'psi' accept either integers or floats between -180 and
+ +180.
+
+For definitions of the angles and lengths, refer to karplus-definitions.jpg,
+which installs with the documentation."""
 
 parser = optparse.OptionParser(version='%prog ' + version)
 parser.disable_interspersed_args()
