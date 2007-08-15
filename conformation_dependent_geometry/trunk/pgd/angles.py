@@ -218,7 +218,6 @@ def iterate_over_bins(dbdict):
     for dbname in dbdict:
         if dbname == default:
             continue
-        vprint("Adding zero-observation bins with default values to", dbname)
         db = dbdict[dbname]
         phi_binsize, psi_binsize = get_binsize(db)
         for phi in xrange(-180, +181, phi_binsize):
@@ -254,9 +253,7 @@ def vprint(*args):
     """Verbose print; only print if verbosity is enabled."""
 
     if optlist.verbose:
-        for arg in args:
-            print >> sys.stderr, arg,
-        print
+        print >> sys.stderr, ' '.join(args)
 
 def main(argv):
     if not optlist.dump:
@@ -271,6 +268,10 @@ def main(argv):
     dbdict = create_all_databases(databases)
 
     if optlist.add_empty or optlist.dump:
+        if optlist.dump:
+            fields = get_fields(dbdict[optlist.dump])
+            if fields:
+                print fields
         dbdict = iterate_over_bins(dbdict)
 
     if not optlist.dump:
