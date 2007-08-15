@@ -50,7 +50,7 @@ databases = {
 
 # Option handling
 dblist = ' '.join(sorted(databases))
-usage = """usage: %prog [options] <residue class> <phi> <psi>
+usage = """usage: %prog [options] [<residue class> <phi> <psi>]
 
 Residue classes:
  Available classes: """ + dblist + """
@@ -66,6 +66,9 @@ Residue classes:
 Angles:
  Both angles 'phi' and 'psi' accept either integers or floats between -180 and
  +180.
+
+The arguments <residue class>, <phi> and <psi> are required unless dumping a
+database.
 
 For definitions of the angles and lengths, refer to karplus-definitions.jpg,
 which installs with the documentation."""
@@ -84,6 +87,11 @@ parser.add_option( \
         action='store_true', \
         dest='add_empty', \
         help='Add default geometry to zero-observation bins; defaults to %default')
+parser.add_option( \
+    '-d', '--dump-database', \
+        dest='dump', \
+        help='Dump a residue class CLASS to standard output', \
+        metavar='CLASS')
 optlist, args = parser.parse_args()
 
 class bin(object):
@@ -201,7 +209,7 @@ def get_geometry(dblist, residue, phi, psi):
         phi_r, psi_r = get_default_binsize(phi, psi, phi_binsize, psi_binsize)
         return fields, dblist[dbname][(phi_r, psi_r)]
 
-def add_empty_bins(dbdict):
+def iterate_over_bins(dbdict):
     """Adds default geometry info to zero-observation bins"""
     # FIXME: Should we first drop back to 'all', then 'default'?
 
@@ -217,18 +225,30 @@ def add_empty_bins(dbdict):
             for psi in xrange(-180, +181, psi_binsize):
                 # Check whether a bin instance exists
                 # If not, make one with defaults
-                if not (phi, psi) in db:
-                    phi_def, psi_def = get_default_binsize( \
-                        phi, psi, phi_def_binsize, psi_def_binsize)
-                    db[(phi, psi)] = bin([])
-                    db[(phi, psi)] = dbdict[default][(phi_def, psi_def)]
-                    # Fix phi/psi; they were the values from 'default'
-                    # Otherwise binsize calculation is wrong
-                    db[(phi, psi)].PhiStart = phi
-                    db[(phi, psi)].PsiStart = psi
-                    db[(phi, psi)].PhiStop = phi + phi_binsize
-                    db[(phi, psi)].PsiStop = psi + psi_binsize
+                if optlist.add_empty:
+                    add_empty_bins(dbdict, db, phi, psi, \
+                                       phi_def_binsize, psi_def_binsize, \
+                                       phi_binsize, psi_binsize)
+
+                # Need to dump after adding empty
+                if optlist.dump == dbname:
+                    if (phi, psi) in db:
+                        print db[(phi, psi)]
+
     return dbdict
+
+def add_empty_bins(dbdict, db, phi, psi, phidefbin, psidefbin, phibin, psibin):
+    if not (phi, psi) in db:
+        phi_def, psi_def = get_default_binsize( \
+            phi, psi, phidefbin, psidefbin)
+        db[(phi, psi)] = bin([])
+        db[(phi, psi)] = dbdict[default][(phi_def, psi_def)]
+        # Fix phi/psi; they were the values from 'default'
+        # Otherwise binsize calculation is wrong
+        db[(phi, psi)].PhiStart = phi
+        db[(phi, psi)].PsiStart = psi
+        db[(phi, psi)].PhiStop = phi + phibin
+        db[(phi, psi)].PsiStop = psi + psibin
 
 def vprint(*args):
     """Verbose print; only print if verbosity is enabled."""
@@ -239,24 +259,26 @@ def vprint(*args):
         print
 
 def main(argv):
-    if len(args) != 3:
-        parser.error('incorrect number of arguments')
-    else:
-        residue = args[0].lower()
-        # int() can't convert from string and from float at the same time
-        phi = int(float(args[1]))
-        psi = int(float(args[2]))
+    if not optlist.dump:
+        if len(args) != 3:
+            parser.error('incorrect number of arguments')
+        else:
+            residue = args[0].lower()
+            # int() can't convert from string and from float at the same time
+            phi = int(float(args[1]))
+            psi = int(float(args[2]))
 
     dbdict = create_all_databases(databases)
 
-    if optlist.add_empty:
-        dbdict = add_empty_bins(dbdict)
+    if optlist.add_empty or optlist.dump:
+        dbdict = iterate_over_bins(dbdict)
 
-    vprint("phi, psi:", phi, psi)
-    fields, geometry = get_geometry(dbdict, residue, phi, psi)
-    if fields:
-        print fields
-    print geometry
+    if not optlist.dump:
+        vprint("phi, psi:", phi, psi)
+        fields, geometry = get_geometry(dbdict, residue, phi, psi)
+        if fields:
+            print fields
+        print geometry
 
 if __name__ == '__main__':
     # run as a program
