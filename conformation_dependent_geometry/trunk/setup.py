@@ -1,6 +1,6 @@
 from distutils.core import setup
-name='pgd'
-version='0.1'
+name='pgd-utils'
+version='0.2'
 setup(name=name,
       version=version,
       description='Package for accessing Protein Geometry Database info',
@@ -10,5 +10,7 @@ setup(name=name,
       scripts=['scripts/pgd-angles'],
       package_data={'pgd': ['data/*.txt'] },
       data_files=[('share/doc/' + name + '-' + version,
-                   ['karplus-definitions.jpg'])]
+                   ['karplus-definitions.jpg',
+                    'examples/pgd-lookup.py',
+                    'examples/test.res'])]
       )
