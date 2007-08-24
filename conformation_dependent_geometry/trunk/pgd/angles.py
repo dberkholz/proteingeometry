@@ -253,7 +253,7 @@ def vprint(*args):
     """Verbose print; only print if verbosity is enabled."""
 
     if optlist.verbose:
-        print >> sys.stderr, ' '.join(args)
+        print >> sys.stderr, ' '.join([str(arg) for arg in args])
 
 def main(argv):
     if not optlist.dump:
