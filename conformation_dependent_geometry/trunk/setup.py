@@ -1,6 +1,6 @@
 from distutils.core import setup
 name='pgd-utils'
-version='0.2'
+version='0.2.1'
 setup(name=name,
       version=version,
       description='Package for accessing Protein Geometry Database info',
