@@ -1,2 +1,2 @@
-PhiStart	PhiStop	PsiStart	PsiStop	Observations	PhiAvg	PhiDev	PsiAvg	PsiDev	L1Avg	L1Dev	L2Avg	L2Dev	L3Avg	L3Dev	L4Avg	L4Dev	L5Avg	L5Dev	a1Avg	a1Dev	a2Avg	a2Dev	a3Avg	a3Dev	a4Avg	a4Dev	a5Avg	a5Dev	a6Avg	a6Dev	a7Avg	a7Dev	OmeAvg	OmeDev	Color	X	Y	XLen	YLen	XBin	YBin	
--180	180	-180	180	-1	-1	-1	-1	-1	1.329	0.014	1.458	0.019	1.530	0.020	1.525	0.021	1.231	0.020	121.7	1.8	110.5	1.7	111.2	2.8	110.1	1.9	120.8	1.7	116.2	2.0	123.0	1.6	-1	-1	-1	-1	-1	-1	-1	-1	-1	
+PhiStart	PhiStop	PsiStart	PsiStop	Observations	PhiAvg	PhiDev	PsiAvg	PsiDev	L1Avg	L1Dev	L2Avg	L2Dev	L3Avg	L3Dev	L4Avg	L4Dev	L5Avg	L5Dev	a1Avg	a1Dev	a2Avg	a2Dev	a3Avg	a3Dev	a4Avg	a4Dev	a5Avg	a5Dev	a6Avg	a6Dev	a7Avg	a7Dev	OmeAvg	OmeDev
+-180	180	-180	180	-1	-1	-1	-1	-1	1.329	0.014	1.458	0.019	1.530	0.020	1.525	0.021	1.231	0.020	121.7	1.8	110.5	1.7	111.2	2.8	110.1	1.9	120.8	1.7	116.2	2.0	123.0	1.6	-1	-1
