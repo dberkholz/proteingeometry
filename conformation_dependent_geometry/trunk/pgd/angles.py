@@ -184,10 +184,14 @@ def get_geometry(dblist, residue, phi, psi):
 
     Return the field names and the geometry."""
 
+    vprint("residue = " + residue)
+
     # Decide which database to use
     for database in databases:
+        vprint("database = " + database)
         if residue == database:
             dbname=database
+            break
         else:
             dbname='all'
 
