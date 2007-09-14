@@ -32,7 +32,7 @@ Design:
 import os, sys, optparse
 
 # Program version
-version = '0.2.1'
+version = '0.3'
 
 # Database containing fallback, standard values (likely Engh & Huber)
 default = 'default'
