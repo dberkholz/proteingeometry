@@ -41,10 +41,11 @@ default = 'default'
 # The key names are the valid residue classes to pass in as arguments
 moduledir = os.path.dirname(__file__)
 databases = {
-'all' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro.txt',
+'all' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro-ile-val.txt',
 'glycine' : moduledir + '/data/1.0-graphdata-gly.txt',
 'proline': moduledir + '/data/1.0-graphdata-pro.txt',
 'preproline': moduledir + '/data/1.0-graphdata-xpro.txt',
+'ileval': moduledir + '/data/1.0-graphdata-ile-val.txt',
 'default': moduledir + '/data/engh-huber.txt'
 }
 
@@ -56,6 +57,7 @@ Residue classes:
  Available classes: """ + dblist + """
  'all': every residue that doesn't have its own class.
  'preproline': residues preceding proline.
+ 'ileval': isoleucine or valine.
  'default': Engh & Huber values
 
  Unknown residue classes will use the 'all' residue class. This can be useful
