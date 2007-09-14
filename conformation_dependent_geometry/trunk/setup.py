@@ -7,9 +7,9 @@ from distutils.command.sdist import sdist as _sdist
 
 class sdist(_sdist):
     """Specialized source distribution creation"""
-
-    cmd="git log > ChangeLog"
-    os.system(cmd)
+    if os.path.exists('.git'):
+        cmd='git log > ChangeLog'
+        os.system(cmd)
 
 setup(name=name,
       version=version,
