@@ -41,7 +41,7 @@ default = 'default'
 # The key names are the valid residue classes to pass in as arguments
 moduledir = os.path.dirname(__file__)
 databases = {
-'all' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro-ile-val.txt',
+'other' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro-ile-val.txt',
 'glycine' : moduledir + '/data/1.0-graphdata-gly.txt',
 'proline': moduledir + '/data/1.0-graphdata-pro.txt',
 'preproline': moduledir + '/data/1.0-graphdata-xpro.txt',
@@ -55,12 +55,12 @@ usage = """usage: %prog [options] [<residue class> <phi> <psi>]
 
 Residue classes:
  Available classes: """ + dblist + """
- 'all': every residue that doesn't have its own class.
+ 'other': every residue that doesn't have its own class.
  'preproline': residues preceding proline.
  'ileval': isoleucine or valine.
  'default': Engh & Huber values
 
- Unknown residue classes will use the 'all' residue class. This can be useful
+ Unknown residue classes will use the 'other' residue class. This can be useful
  if you want to just pass in the residue name regardless of whether it's a
  class. When no observations exist in the original class, the 'default' class
  is used as a fallback. This is indicated by an observations count of -1.
@@ -195,7 +195,7 @@ def get_geometry(dblist, residue, phi, psi):
             dbname=database
             break
         else:
-            dbname='all'
+            dbname='other'
 
     fields = get_fields(dblist[dbname])
 
@@ -217,7 +217,7 @@ def get_geometry(dblist, residue, phi, psi):
 
 def iterate_over_bins(dbdict):
     """Adds default geometry info to zero-observation bins"""
-    # FIXME: Should we first drop back to 'all', then 'default'?
+    # FIXME: Should we first drop back to 'other', then 'default'?
 
     # Iterate over all bins from -180 to +180 using binsize chunks
     phi_def_binsize, psi_def_binsize = get_binsize(dbdict[default])
