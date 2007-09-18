@@ -30,6 +30,49 @@ class geom(object):
     def get(self, attr):
         return getattr(self, attr)
 
+class protein_geometry_database(geom):
+    def __init__(self, attr):
+        geom.__init__(self, attr)
+        # Read in database files etc here
+        self.dbdict = a.create_all_databases(a.databases)
+
+    def get(self, phi, psi, attr):
+        # Get based on residue type, phi and psi
+        #print phi, psi
+        #print type(attr)
+
+        # angle/length-naming glue
+        if attr[0] != 'a':
+            pgdattr = attr.capitalize()
+        pgdattr += 'Avg'
+
+        if phi > 180 or psi > 180:
+            residue = 'default'
+            phi = 0
+            psi = 0
+        # Note next_res_name
+        elif self.next_res_name == 'PRO':
+            residue = 'glycine'
+        elif self.res_name == 'GLY':
+            residue = 'glycine'
+        elif self.res_name == 'PRO':
+            residue = 'proline'
+        elif self.res_name == 'ILE' \
+                or self.res_name == 'VAL':
+            residue = 'ileval'
+        else:
+            residue = 'all'
+        fields, geometry = a.get_geometry(self.dbdict, residue, phi, psi)
+        #print geometry.__dict__
+        value = getattr(geometry, pgdattr)
+        # Our defaults don't include omega for some reason,
+        # instead they return -1
+        if attr == 'ome' and value == -1:
+            return 180
+        else:
+            return value
+
+
 def main(argv):
     if len(argv[1:]) != 3:
         print "Requires a length/angle and 2 PDB files as an argument"
@@ -44,12 +87,14 @@ def main(argv):
     get_geometry(struct2)
 
     eh = geom(meas)
+    pgd = protein_geometry_database(meas)
     #print eh.__dict__
     if meas == 'ome':
         #print "Measurement is ome"
         eh.set(meas, 180)
     msd = 0
     eh.msd = 0
+    pgd.msd = 0
     N = 0
     for r in struct1.iter_amino_acids():
         r_atom = r.get_atom('C')
@@ -59,6 +104,16 @@ def main(argv):
             continue
         if r2_atom.occupancy < 0.5 or r_atom.occupancy < 0.5:
             continue
+
+        # We use this to look up conformation-dependent geometry
+        pgd.res_name = r2.res_name
+        # Look for residue i+1 for a proline, so we know if we're XPro
+        pgd.next_res_numstr = str(int(r2.fragment_id) + 1)
+        r2_dict = r2.get_chain().fragment_dict
+        try:
+            pgd.next_res_name = r2_dict[pgd.next_res_numstr]
+        except:
+            pgd.next_res_name = 'END'
 
         if meas == 'a3':
             #print "Measurement is a3"
@@ -74,16 +129,22 @@ def main(argv):
             #print "phi/psi/ome"
             if r.props[meas] > 180 or r2.props[meas] > 180:
                 continue
+
         dev = r.props[meas] - r2.props[meas]
         msd += dev**2
         eh.dev = r2.props[meas] - eh.get(meas)
         eh.msd += eh.dev**2
+        pgd_meas = pgd.get(r.props['phi'], r.props['psi'], meas)
+        pgd.dev = r2.props[meas] - pgd_meas
+        pgd.msd += pgd.dev**2
         N += 1
-        #print '%.2f %.2f %.2f %.2f %.2f %.2f %.2f %d' % (r.props[meas], r2.props[meas], eh.get(meas), dev, msd, eh.dev, eh.msd, N)
+        #print '%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d' % (r.props[meas], r2.props[meas], eh.get(meas), pgd_meas, dev, msd, eh.dev, eh.msd, pgd.dev, pgd.msd, N)
     rmsd = math.sqrt ( msd / N )
     eh.rmsd = math.sqrt ( eh.msd / N )
-    #print '%s for %s vs %s = %.2f' % (meas, pdb1, pdb2, rmsd)
+    pgd.rmsd = math.sqrt ( pgd.msd / N )
+    print '%s for %s vs %s = %.2f' % (meas, pdb1, pdb2, rmsd)
     print '%s for %s vs E&H = %.2f' % (meas, pdb2, eh.rmsd)
+    print '%s for %s vs PGD = %.2f' % (meas, pdb2, pgd.rmsd)
 
 def get_geometry(struct):
     for r in struct.iter_amino_acids():
