@@ -44,6 +44,8 @@ class protein_geometry_database(geom):
         # angle/length-naming glue
         if attr[0] != 'a':
             pgdattr = attr.capitalize()
+        else:
+            pgdattr = attr
         pgdattr += 'Avg'
 
         if phi > 180 or psi > 180:
