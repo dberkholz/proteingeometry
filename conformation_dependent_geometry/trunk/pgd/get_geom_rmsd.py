@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 
-import math, sys, mmLib.Structure, mmLib.FileIO, mmLib.AtomMath
+import math, sys
 import pgd.angles as a
+
+try:
+    import mmLib.Structure, mmLib.FileIO, mmLib.AtomMath
+except:
+    print "Failed to import mmLib"
+    print "Install from http://pymmlib.sourceforge.net/"
+    sys.exit(1)
 
 # Structure.AminoAcidResidue:
 #
