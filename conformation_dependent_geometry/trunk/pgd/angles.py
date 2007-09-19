@@ -49,53 +49,6 @@ databases = {
 'default': moduledir + '/data/engh-huber.txt'
 }
 
-# Option handling
-dblist = ' '.join(sorted(databases))
-usage = """usage: %prog [options] [<residue class> <phi> <psi>]
-
-Residue classes:
- Available classes: """ + dblist + """
- 'other': every residue that doesn't have its own class.
- 'preproline': residues preceding proline.
- 'ileval': isoleucine or valine.
- 'default': Engh & Huber values
-
- Unknown residue classes will use the 'other' residue class. This can be useful
- if you want to just pass in the residue name regardless of whether it's a
- class. When no observations exist in the original class, the 'default' class
- is used as a fallback. This is indicated by an observations count of -1.
-
-Angles:
- Both angles 'phi' and 'psi' accept either integers or floats between -180 and
- +180.
-
-The arguments <residue class>, <phi> and <psi> are required unless dumping a
-database.
-
-For definitions of the angles and lengths, refer to karplus-definitions.jpg,
-which installs with the documentation."""
-
-parser = optparse.OptionParser(version='%prog ' + version)
-parser.disable_interspersed_args()
-parser.set_usage(usage)
-parser.set_defaults(verbose=False, add_empty=False)
-parser.add_option( \
-    '-v', '--verbose', \
-        action='store_true', \
-        dest='verbose', \
-        help='Use verbose output; defaults to %default')
-parser.add_option( \
-    '-e', '--add-empty', \
-        action='store_true', \
-        dest='add_empty', \
-        help='Add default geometry to zero-observation bins; defaults to %default')
-parser.add_option( \
-    '-d', '--dump-database', \
-        dest='dump', \
-        help='Dump a residue class CLASS to standard output', \
-        metavar='CLASS')
-optlist, args = parser.parse_args()
-
 class bin(object):
     """This class holds all the info about a bin. Bins cannot be instantiated
     without first filling in var_order. See create_database() for that code."""
@@ -261,7 +214,60 @@ def vprint(*args):
     if optlist.verbose:
         print >> sys.stderr, ' '.join([str(arg) for arg in args])
 
+def optparse_setup():
+    # Option handling
+    dblist = ' '.join(sorted(databases))
+    usage = """usage: %prog [options] [<residue class> <phi> <psi>]
+
+Residue classes:
+ Available classes: """ + dblist + """
+ 'other': every residue that doesn't have its own class.
+ 'preproline': residues preceding proline.
+ 'ileval': isoleucine or valine.
+ 'default': Engh & Huber values
+
+ Unknown residue classes will use the 'other' residue class. This can be useful
+ if you want to just pass in the residue name regardless of whether it's a
+ class. When no observations exist in the original class, the 'default' class
+ is used as a fallback. This is indicated by an observations count of -1.
+
+Angles:
+ Both angles 'phi' and 'psi' accept either integers or floats between -180 and
+ +180.
+
+The arguments <residue class>, <phi> and <psi> are required unless dumping a
+database.
+
+For definitions of the angles and lengths, refer to karplus-definitions.jpg,
+which installs with the documentation."""
+
+    parser = optparse.OptionParser(version='%prog ' + version)
+    parser.disable_interspersed_args()
+    parser.set_usage(usage)
+    parser.set_defaults(verbose=False, add_empty=False)
+    parser.add_option( \
+        '-v', '--verbose', \
+            action='store_true', \
+            dest='verbose', \
+            help='Use verbose output; defaults to %default')
+    parser.add_option( \
+        '-e', '--add-empty', \
+            action='store_true', \
+            dest='add_empty', \
+            help='Add default geometry to zero-observation bins; defaults to %default')
+    parser.add_option( \
+        '-d', '--dump-database', \
+            dest='dump', \
+            help='Dump a residue class CLASS to standard output', \
+            metavar='CLASS')
+    return parser
+
 def main(argv):
+    global optlist
+    global args
+    parser = optparse_setup()
+    optlist, args = parser.parse_args()
+
     if not optlist.dump:
         if len(args) != 3:
             parser.error('incorrect number of arguments')
