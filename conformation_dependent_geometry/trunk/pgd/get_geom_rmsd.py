@@ -130,6 +130,9 @@ def main(argv):
     N = 0
     for r in struct.iter_amino_acids():
         r_atom = r.get_atom('C')
+        if not r_atom:
+            continue
+
         if optlist.compare_pdb:
             c_atom = cstruct.get_equivalent_atom(r_atom)
             # c_r is the compared residue
