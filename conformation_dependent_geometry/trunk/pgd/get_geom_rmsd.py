@@ -78,6 +78,8 @@ class protein_geometry_database(geom):
         fields, geometry = a.get_geometry(self.dbdict, residue, phi, psi)
         #print geometry.__dict__
         value = getattr(geometry, pgdattr)
+        obs = getattr(geometry, 'Observations')
+        # print 'res, phi, psi, value, observations = %s, %.2f, %.2f, %.2f, %d' % (residue, phi, psi, value, obs)
         # Our defaults don't include omega for some reason,
         # instead they return -1
         if attr == 'ome' and value == -1:
