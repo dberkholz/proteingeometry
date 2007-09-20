@@ -138,6 +138,15 @@ def main(argv):
                 continue
             if c_atom.occupancy < 0.5:
                 continue
+            try:
+                c_r.props[meas]
+            except:
+                continue
+
+        try:
+            r.props[meas]
+        except:
+            continue
         if r_atom.occupancy < 0.5:
             continue
 
@@ -311,13 +320,17 @@ def get_geometry(struct, *geomtypes):
             'psi': math.degrees(r.psi),
                     }
         if angle:
-            r.props['a1'] = math.degrees(r.a1)
-            r.props['a2'] = math.degrees(r.a2)
-            r.props['a3'] = math.degrees(r.a3)
-            r.props['a4'] = math.degrees(r.a4)
-            r.props['a5'] = math.degrees(r.a5)
-            r.props['a6'] = math.degrees(r.a6)
-            r.props['a7'] = math.degrees(r.a7)
+            try:
+                r.props['a1'] = math.degrees(r.a1)
+                r.props['a2'] = math.degrees(r.a2)
+                r.props['a3'] = math.degrees(r.a3)
+                r.props['a4'] = math.degrees(r.a4)
+                r.props['a5'] = math.degrees(r.a5)
+                r.props['a6'] = math.degrees(r.a6)
+                r.props['a7'] = math.degrees(r.a7)
+            # Not a number, so probably didn't get set.
+            except TypeError:
+                pass
         if length:
             r.props['l1'] = r.l1
             r.props['l2'] = r.l2
