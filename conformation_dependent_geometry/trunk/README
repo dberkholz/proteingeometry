@@ -3,3 +3,12 @@ To install the Protein Geometry Database library-access modules, just run:
 python setup.py install
 
 See `pgd-angles --help` for more information.
+
+The get_geom_rmsd.py script depends on the pymmlib library. It requires 
+you to make a slight change to the file AtomMath.py, in the function 
+calc_torsion_angle(): uncomment these two lines:
+
+#    if direction<0.0:
+#        angle = -angle
+
+This is required to allow for negative phi and psi angles.
