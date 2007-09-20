@@ -156,6 +156,13 @@ def main(argv):
             #print "phi/psi/ome"
             if r.props[meas] > 180 or r2.props[meas] > 180:
                 continue
+        # Force omega into the -90 to +270 range so it's an easy comparison
+        # The other option is doing math in radians with a pi modulus
+        if meas == 'ome':
+            if r.props[meas] < -90:
+                r.props[meas] += 360
+            if r2.props[meas] < -90:
+                r2.props[meas] += 360
 
         dev = r.props[meas] - r2.props[meas]
         msd += dev**2
