@@ -167,7 +167,18 @@ def main(argv):
             pgd.dev = r2.props[meas] - pgd_meas
             pgd.msd += pgd.dev**2
         N += 1
-        #print '%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d' % (r.props[meas], r2.props[meas], eh.get(meas), pgd_meas, dev, msd, eh.dev, eh.msd, pgd.dev, pgd.msd, N)
+        if optlist.verbose:
+            print '%.2f %.2f' % (r.props[meas], r2.props[meas]),
+            if optlist.compare_eh:
+                print '%.2f' % eh.get(meas),
+            if optlist.compare_pgd:
+                print '%.2f' % pgd_meas,
+            print '%+.2f %.2f' % (dev, msd),
+            if optlist.compare_eh:
+                print '%+.2f %.2f' % (eh.dev, eh.msd),
+            if optlist.compare_pgd:
+                print '%+.2f %.2f' % (pgd.dev, pgd.msd),
+            print '%d' % N
     rmsd = math.sqrt ( msd / N )
     print '%s for %s vs %s = %.2f' % (meas, pdb1, pdb2, rmsd)
     if optlist.compare_eh:
