@@ -163,6 +163,11 @@ def main(argv):
                 r.props[meas] += 360
             if r2.props[meas] < -90:
                 r2.props[meas] += 360
+            # ignore cis peptides
+            if r.props[meas] < 90 and r.props[meas] > -90:
+                continue
+            if r2.props[meas] < 90 and r2.props[meas] > -90:
+                continue
 
         dev = r.props[meas] - r2.props[meas]
         msd += dev**2
