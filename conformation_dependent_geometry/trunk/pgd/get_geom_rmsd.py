@@ -162,7 +162,7 @@ def main(argv):
             eh.dev = r2.props[meas] - eh.get(meas)
             eh.msd += eh.dev**2
         if optlist.compare_pgd:
-            pgd_meas = pgd.get(r.props['phi'], r.props['psi'], meas)
+            pgd_meas = pgd.get(r2.props['phi'], r2.props['psi'], meas)
             pgd.dev = r2.props[meas] - pgd_meas
             pgd.msd += pgd.dev**2
         N += 1
