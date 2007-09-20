@@ -100,16 +100,20 @@ def main(argv):
     angles_options = []
     a.optlist, a.args = angles_parser.parse_args(angles_options)
 
-    if len(args) != 3:
+    if len(args) != 2:
         parser.error('incorrect number of arguments')
 
     meas = args[0]
-    pdb1 = args[1]
-    pdb2 = args[2]
-    struct1 = mmLib.FileIO.LoadStructure(file=pdb1)
-    struct2 = mmLib.FileIO.LoadStructure(file=pdb2)
-    get_geometry(struct1)
-    get_geometry(struct2)
+
+    pdb = args[1]
+    struct = mmLib.FileIO.LoadStructure(file=pdb)
+    get_geometry(struct)
+
+    if optlist.compare_pdb:
+        cpdb = optlist.compare_pdb
+        cstruct = mmLib.FileIO.LoadStructure(file=cpdb)
+        get_geometry(cstruct)
+        msd = 0
 
     if optlist.compare_eh:
         eh = geom(meas)
@@ -118,90 +122,105 @@ def main(argv):
             # print "Measurement is ome"
             eh.set(meas, 180)
         eh.msd = 0
+
     if optlist.compare_pgd:
         pgd = protein_geometry_database(meas)
         pgd.msd = 0
-    msd = 0
+
     N = 0
-    for r in struct1.iter_amino_acids():
+    for r in struct.iter_amino_acids():
         r_atom = r.get_atom('C')
-        r2_atom = struct2.get_equivalent_atom(r_atom)
-        r2 = r2_atom.get_fragment()
-        if not r2:
-            continue
-        if r2_atom.occupancy < 0.5 or r_atom.occupancy < 0.5:
+        if optlist.compare_pdb:
+            c_atom = cstruct.get_equivalent_atom(r_atom)
+            # c_r is the compared residue
+            c_r = c_atom.get_fragment()
+            if not c_r:
+                continue
+            if c_atom.occupancy < 0.5:
+                continue
+        if r_atom.occupancy < 0.5:
             continue
 
         if optlist.compare_pgd:
             # We use this to look up conformation-dependent geometry
-            pgd.res_name = r2.res_name
+            pgd.res_name = r.res_name
             # Look for residue i+1 for a proline, so we know if we're XPro
-            pgd.next_res_numstr = str(int(r2.fragment_id) + 1)
-            r2_dict = r2.get_chain().fragment_dict
+            pgd.next_res_numstr = str(int(r.fragment_id) + 1)
+            r_dict = r.get_chain().fragment_dict
             try:
-                pgd.next_res_name = r2_dict[pgd.next_res_numstr]
+                pgd.next_res_name = r_dict[pgd.next_res_numstr]
             except:
                 pgd.next_res_name = 'END'
 
         if optlist.compare_eh:
             if meas == 'a3':
                 # print "Measurement is a3"
-                if r2.res_name == 'GLY':
+                if r.res_name == 'GLY':
                     # print r2
                     eh.set(meas, 112.5)
-                elif r2.res_name == 'PRO':
+                elif r.res_name == 'PRO':
                     # print r2
                     eh.set(meas, 111.8)
                 else:
                     eh.set(meas, 111.2)
         if meas == 'phi' or meas == 'psi' or meas == 'ome':
             #print "phi/psi/ome"
-            if r.props[meas] > 180 or r2.props[meas] > 180:
+            if r.props[meas] > 180:
                 continue
+            if optlist.compare_pdb:
+                if c_r.props[meas] > 180:
+                    continue
         # Force omega into the -90 to +270 range so it's an easy comparison
         # The other option is doing math in radians with a pi modulus
         if meas == 'ome':
             if r.props[meas] < -90:
                 r.props[meas] += 360
-            if r2.props[meas] < -90:
-                r2.props[meas] += 360
+            if optlist.compare_pdb:
+                if c_r.props[meas] < -90:
+                    c_r.props[meas] += 360
             # ignore cis peptides
             if r.props[meas] < 90 and r.props[meas] > -90:
                 continue
-            if r2.props[meas] < 90 and r2.props[meas] > -90:
-                continue
+            if optlist.compare_pdb:
+                if c_r.props[meas] < 90 and c_r.props[meas] > -90:
+                    continue
 
-        dev = r.props[meas] - r2.props[meas]
-        msd += dev**2
+        if optlist.compare_pdb:
+            dev = r.props[meas] - c_r.props[meas]
+            msd += dev**2
         if optlist.compare_eh:
-            eh.dev = r2.props[meas] - eh.get(meas)
+            eh.dev = r.props[meas] - eh.get(meas)
             eh.msd += eh.dev**2
         if optlist.compare_pgd:
-            pgd_meas = pgd.get(r2.props['phi'], r2.props['psi'], meas)
-            pgd.dev = r2.props[meas] - pgd_meas
+            pgd_meas = pgd.get(r.props['phi'], r.props['psi'], meas)
+            pgd.dev = r.props[meas] - pgd_meas
             pgd.msd += pgd.dev**2
         N += 1
         if optlist.verbose:
-            print '%.2f %.2f' % (r.props[meas], r2.props[meas]),
+            print '%.2f' % r.props[meas],
+            if optlist.compare_pdb:
+                print '%.2f' % c_r.props[meas],
             if optlist.compare_eh:
                 print '%.2f' % eh.get(meas),
             if optlist.compare_pgd:
                 print '%.2f' % pgd_meas,
-            print '%+.2f %.2f' % (dev, msd),
+            if optlist.compare_pdb:
+                print '%+.2f %.2f' % (dev, msd),
             if optlist.compare_eh:
                 print '%+.2f %.2f' % (eh.dev, eh.msd),
             if optlist.compare_pgd:
                 print '%+.2f %.2f' % (pgd.dev, pgd.msd),
             print '%d' % N
-    rmsd = math.sqrt ( msd / N )
     print
-    print '%s for %s vs %s = %.2f' % (meas, pdb1, pdb2, rmsd)
+    if optlist.compare_pdb:
+        rmsd = math.sqrt ( msd / N )
+        print '%s for %s vs %s = %.2f' % (meas, pdb, cpdb, rmsd)
     if optlist.compare_eh:
         eh.rmsd = math.sqrt ( eh.msd / N )
-        print '%s for %s vs E&H = %.2f' % (meas, pdb2, eh.rmsd)
+        print '%s for %s vs E&H = %.2f' % (meas, pdb, eh.rmsd)
     if optlist.compare_pgd:
         pgd.rmsd = math.sqrt ( pgd.msd / N )
-        print '%s for %s vs PGD = %.2f' % (meas, pdb2, pgd.rmsd)
+        print '%s for %s vs PGD = %.2f' % (meas, pdb, pgd.rmsd)
 
 def get_geometry(struct):
     for r in struct.iter_amino_acids():
@@ -281,9 +300,12 @@ def optparse_setup():
     usage = """usage: %prog [options] [<geometry type> <PDB> <PDB>]"""
 
     parser = optparse.OptionParser(version='%prog ' + version)
-    parser.disable_interspersed_args()
     parser.set_usage(usage)
-    parser.set_defaults(verbose=False, compare_eh=False, compare_pgd=False)
+    parser.set_defaults(
+        verbose=False,
+        compare_eh=False,
+        compare_pgd=False,
+        )
     parser.add_option( \
         '-v', '--verbose', \
             action='store_true', \
@@ -299,6 +321,13 @@ def optparse_setup():
             action='store_true', \
             dest='compare_pgd', \
             help='Compare geometry to Protein Geometry Database; defaults to %default')
+    parser.add_option( \
+        '-s', '--pdb-structure', \
+            dest='compare_pdb', \
+            help='Compare geometry to structure file PDB',
+            metavar='PDB',
+        )
+
     return parser
 
 if __name__ == '__main__':
