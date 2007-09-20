@@ -130,8 +130,6 @@ def main(argv):
     N = 0
     for r in struct.iter_amino_acids():
         r_atom = r.get_atom('C')
-        if not r_atom:
-            continue
 
         if optlist.compare_pdb:
             c_atom = cstruct.get_equivalent_atom(r_atom)
@@ -139,7 +137,7 @@ def main(argv):
             c_r = c_atom.get_fragment()
             if not c_r:
                 continue
-            if c_atom.occupancy < 0.5:
+            if c_atom.occupancy and c_atom.occupancy < 0.5:
                 continue
             try:
                 c_r.props[meas]
@@ -150,7 +148,7 @@ def main(argv):
             r.props[meas]
         except:
             continue
-        if r_atom.occupancy < 0.5:
+        if r_atom.occupancy and r_atom.occupancy < 0.5:
             continue
 
         if optlist.compare_pgd:
