@@ -137,8 +137,6 @@ def main(argv):
             c_r = c_atom.get_fragment()
             if not c_r:
                 continue
-            if c_atom.occupancy and c_atom.occupancy < 0.5:
-                continue
             try:
                 c_r.props[meas]
             except:
@@ -147,8 +145,6 @@ def main(argv):
         try:
             r.props[meas]
         except:
-            continue
-        if r_atom.occupancy and r_atom.occupancy < 0.5:
             continue
 
         if optlist.compare_pgd:
