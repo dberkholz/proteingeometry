@@ -180,6 +180,7 @@ def main(argv):
                 print '%+.2f %.2f' % (pgd.dev, pgd.msd),
             print '%d' % N
     rmsd = math.sqrt ( msd / N )
+    print
     print '%s for %s vs %s = %.2f' % (meas, pdb1, pdb2, rmsd)
     if optlist.compare_eh:
         eh.rmsd = math.sqrt ( eh.msd / N )
