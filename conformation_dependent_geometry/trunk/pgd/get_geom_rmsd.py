@@ -73,7 +73,8 @@ class protein_geometry_database(geom):
                 or self.res_name == 'VAL':
             residue = 'ileval'
         else:
-            residue = 'all'
+            residue = 'other'
+        # print 'residue = ', residue
         fields, geometry = a.get_geometry(self.dbdict, residue, phi, psi)
         #print geometry.__dict__
         value = getattr(geometry, pgdattr)
