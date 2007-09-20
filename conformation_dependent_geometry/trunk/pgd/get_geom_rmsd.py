@@ -245,6 +245,11 @@ def get_geometry(struct, *geomtypes):
         if angle:
             r.a3, r.a2, r.a4, r.a5, a6, a1 = \
                 r.calc_mainchain_bond_angle()
+            if not prev_res:
+                # n-terminus
+                r.a1 = 0
+                r.a6 = 0
+                r.a7 = 0
         if length:
             r.l2, r.l4, r.l5, r.l3, r.l6 = \
                 r.calc_mainchain_bond_length()
@@ -254,9 +259,6 @@ def get_geometry(struct, *geomtypes):
             else:
                 # n-terminus
                 r.l1 = 0
-                r.a1 = 0
-                r.a6 = 0
-                r.a7 = 0
         if next_res:
             if angle:
                 next_res.a1 = a1
