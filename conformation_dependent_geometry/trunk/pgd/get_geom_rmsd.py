@@ -32,8 +32,6 @@ except:
 # Program version                                                              
 version = '0.1'
 
-usage = """usage: %prog [options] [<geometry type> <PDB> <PDB>]"""
-
 class geom(object):
     def __init__(self, attr):
         setattr(self, attr, 0)
@@ -90,7 +88,8 @@ class protein_geometry_database(geom):
 def main(argv):
     global optlist
     global args
-    optlist, args = parse_options()
+    parser = optparse_setup()
+    optlist, args = parser.parse_args()
 
     # Needed for angles code
     angles_parser = a.optparse_setup()
@@ -251,7 +250,9 @@ def get_geometry(struct):
             'a7': math.degrees(r.a7),
                     }
 
-def parse_options():
+def optparse_setup():
+    usage = """usage: %prog [options] [<geometry type> <PDB> <PDB>]"""
+
     parser = optparse.OptionParser(version='%prog ' + version)
     parser.disable_interspersed_args()
     parser.set_usage(usage)
@@ -271,8 +272,7 @@ def parse_options():
             action='store_true', \
             dest='compare_pgd', \
             help='Compare geometry to Protein Geometry Database; defaults to %default')
-    optlist, args = parser.parse_args()
-    return optlist, args
+    return parser
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv))
