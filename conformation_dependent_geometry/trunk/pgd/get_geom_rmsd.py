@@ -340,7 +340,7 @@ def get_geometry(struct, *geomtypes):
             r.props['ome'] = math.degrees(r.ome)
  
 def optparse_setup():
-    usage = """usage: %prog [options] [<geometry type> <PDB> <PDB>]"""
+    usage = """usage: %prog [options] [<geometry type> <PDB>]"""
 
     parser = optparse.OptionParser(version='%prog ' + version)
     parser.set_usage(usage)
