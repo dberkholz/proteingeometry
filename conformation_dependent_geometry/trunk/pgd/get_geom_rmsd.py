@@ -129,7 +129,7 @@ def main(argv):
 
     N = 0
     for r in struct.iter_amino_acids():
-        r_atom = r.get_atom('C')
+        r_atom = r.get_atom('CA')
 
         if optlist.compare_pdb:
             c_atom = cstruct.get_equivalent_atom(r_atom)
