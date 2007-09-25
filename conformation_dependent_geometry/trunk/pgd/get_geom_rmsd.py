@@ -218,6 +218,7 @@ def main(argv):
                 print '%+.2f %.2f' % (pgd.dev, pgd.msd),
             print '%d' % N
     print
+    print 'Using %d residues' % N
     if optlist.compare_pdb:
         rmsd = math.sqrt ( msd / N )
         print '%s for %s vs %s = %.2f' % (meas, pdb, cpdb, rmsd)
