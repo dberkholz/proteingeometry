@@ -326,7 +326,7 @@ def get_geometry(struct, *geomtypes):
                 r.props['a6'] = math.degrees(r.a6)
                 r.props['a7'] = math.degrees(r.a7)
             # Not a number, so probably didn't get set.
-            except TypeError:
+            except (TypeError, AttributeError):
                 pass
         if length:
             r.props['l1'] = r.l1
