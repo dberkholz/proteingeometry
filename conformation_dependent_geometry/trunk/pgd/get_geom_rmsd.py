@@ -87,6 +87,23 @@ class protein_geometry_database(geom):
         else:
             return value
 
+def valid_deviation(geomclass, deviation):
+    """If a deviation is too large to be reasonable, ignore it"""
+    max_angle_deviation = 40
+    max_length_deviation = 0.5
+    max_torsion_deviation = 60
+    deviation = abs(deviation)
+
+    if geomclass == 'angle':
+        if deviation > max_angle_deviation:
+            return False
+    if geomclass == 'length':
+        if deviation > max_length_deviation:
+            return False
+    if geomclass == 'torsion':
+        if deviation > max_torsion_deviation:
+            return False
+    return True
 
 def main(argv):
     global optlist
@@ -108,6 +125,15 @@ def main(argv):
     pdb = args[1]
     struct = mmLib.FileIO.LoadStructure(file=pdb)
     get_geometry(struct, meas)
+
+    # To make validation easier
+    if meas.startswith('a'):
+        geomclass = 'angle'
+    elif meas.startswith('l'):
+        geomclass = 'length'
+    elif meas == 'ome' \
+            or meas == 'zeta':
+        geomclass = 'torsion'
 
     if optlist.compare_pdb:
         cpdb = optlist.compare_pdb
@@ -193,13 +219,19 @@ def main(argv):
 
         if optlist.compare_pdb:
             dev = r.props[meas] - c_r.props[meas]
+            if not valid_deviation(geomclass, dev):
+                continue
             msd += dev**2
         if optlist.compare_eh:
             eh.dev = r.props[meas] - eh.get(meas)
+            if not valid_deviation(geomclass, eh.dev):
+                continue
             eh.msd += eh.dev**2
         if optlist.compare_pgd:
             pgd_meas = pgd.get(r.props['phi'], r.props['psi'], meas)
             pgd.dev = r.props[meas] - pgd_meas
+            if not valid_deviation(geomclass, pgd.dev):
+                continue
             pgd.msd += pgd.dev**2
         N += 1
         if optlist.verbose:
