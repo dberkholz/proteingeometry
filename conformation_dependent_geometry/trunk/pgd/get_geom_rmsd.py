@@ -177,7 +177,8 @@ def main(argv):
             # We use this to look up conformation-dependent geometry
             pgd.res_name = r.res_name
             # Look for residue i+1 for a proline, so we know if we're XPro
-            pgd.next_res_numstr = str(int(r.fragment_id) + 1)
+            res_seq, icode = mmLib.Structure.fragment_id_split(r.fragment_id)
+            pgd.next_res_numstr = str(int(res_seq) + 1)
             r_dict = r.get_chain().fragment_dict
             try:
                 pgd.next_res_name = r_dict[pgd.next_res_numstr]
