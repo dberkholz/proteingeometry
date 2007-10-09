@@ -236,6 +236,7 @@ def main(argv):
             pgd.msd += pgd.dev**2
         N += 1
         if optlist.verbose:
+            print '%s %s %s' % (r.props['name'], r.props['chain'], r.props['id']),
             print '%.2f' % r.props[meas],
             if optlist.compare_pdb:
                 print '%.2f' % c_r.props[meas],
@@ -356,6 +357,7 @@ def get_geometry(struct, *geomtypes):
         r.props = {
             'name': r.res_name,
             'id': r.fragment_id,
+            'chain': r.chain_id,
             'phi': math.degrees(r.phi),
             'psi': math.degrees(r.psi),
                     }
