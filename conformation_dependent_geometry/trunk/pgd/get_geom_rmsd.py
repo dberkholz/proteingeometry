@@ -282,6 +282,15 @@ def get_geometry(struct, *geomtypes):
         next_res = r.get_offset_residue(1)
         prev_res = r.get_offset_residue(-1)
 
+        # Make sure the adjacent residues really are sequential
+        # Otherwise we can get weird angles
+        if next_res:
+            if (int(next_res.fragment_id) - int(r.fragment_id) != 1):
+                continue
+        if prev_res:
+            if (int(prev_res.fragment_id) - int(r.fragment_id) != -1):
+                continue
+
         if angle:
             r.a3, r.a2, r.a4, r.a5, a6, a1 = \
                 r.calc_mainchain_bond_angle()
