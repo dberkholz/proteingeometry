@@ -237,6 +237,7 @@ def main(argv):
         N += 1
         if optlist.verbose:
             print '%s %s %s' % (r.props['name'], r.props['chain'], r.props['id']),
+            print '%+.1f %+.1f' % (r.props['phi'], r.props['psi']),
             print '%.2f' % r.props[meas],
             if optlist.compare_pdb:
                 print '%.2f' % c_r.props[meas],
