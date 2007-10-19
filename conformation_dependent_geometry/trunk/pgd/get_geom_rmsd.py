@@ -160,8 +160,9 @@ def main(argv):
         if optlist.compare_pdb:
             c_atom = cstruct.get_equivalent_atom(r_atom)
             # c_r is the compared residue
-            c_r = c_atom.get_fragment()
-            if not c_r:
+            try:
+                c_r = c_atom.get_fragment()
+            except:
                 continue
             try:
                 c_r.props[meas]
