@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import math, sys, optparse
-import pgd.angles as a
+import pgd.angles
 
 try:
     import mmLib.Structure, mmLib.FileIO, mmLib.AtomMath
@@ -44,7 +44,8 @@ class protein_geometry_database(geom):
     def __init__(self, attr):
         geom.__init__(self, attr)
         # Read in database files etc here
-        self.dbdict = a.create_all_databases(a.databases)
+        self.dbdict = pgd.angles.create_all_databases(
+                        pgd.angles.databases)
 
     def get(self, phi, psi, attr):
         # Get based on residue type, phi and psi
@@ -75,7 +76,7 @@ class protein_geometry_database(geom):
         else:
             residue = 'other'
         # print 'residue = ', residue
-        fields, geometry = a.get_geometry(self.dbdict, residue, phi, psi)
+        fields, geometry = pgd.angles.get_geometry(self.dbdict, residue, phi, psi)
         #print geometry.__dict__
         value = getattr(geometry, pgdattr)
         obs = getattr(geometry, 'Observations')
