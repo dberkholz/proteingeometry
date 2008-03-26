@@ -76,6 +76,7 @@ def map_residue_to_type(residue, next_residue):
         'VAL'
         ]
 
+    residue_type = None
     if residue in glycine:
         residue_type = 'glycine'
     elif residue in proline:
