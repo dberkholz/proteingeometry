@@ -137,9 +137,9 @@ def main(argv):
             eh.set(meas, 180)
         eh.msd = 0
 
-    if optlist.compare_pgd:
-        pgd = protein_geometry_database(meas)
-        pgd.msd = 0
+    if optlist.compare_cdecg:
+        cdecg = protein_geometry_database(meas)
+        cdecg.msd = 0
 
     N = 0
     for r in struct.iter_amino_acids():
@@ -162,17 +162,17 @@ def main(argv):
         except:
             continue
 
-        if optlist.compare_pgd:
+        if optlist.compare_cdecg:
             # We use this to look up conformation-dependent geometry
-            pgd.res_name = r.res_name
+            cdecg.res_name = r.res_name
             # Look for residue i+1 for a proline, so we know if we're XPro
             res_seq, icode = mmLib.Structure.fragment_id_split(r.fragment_id)
-            pgd.next_res_numstr = str(int(res_seq) + 1)
+            cdecg.next_res_numstr = str(int(res_seq) + 1)
             r_dict = r.get_chain().fragment_dict
             try:
-                pgd.next_res_name = r_dict[pgd.next_res_numstr]
+                cdecg.next_res_name = r_dict[cdecg.next_res_numstr]
             except:
-                pgd.next_res_name = 'END'
+                cdecg.next_res_name = 'END'
 
         if optlist.compare_eh:
             if meas == 'a3':
@@ -217,12 +217,12 @@ def main(argv):
             if not valid_deviation(geomclass, eh.dev):
                 continue
             eh.msd += eh.dev**2
-        if optlist.compare_pgd:
-            pgd_meas = pgd.get(r.props['phi'], r.props['psi'], meas)
-            pgd.dev = r.props[meas] - pgd_meas
-            if not valid_deviation(geomclass, pgd.dev):
+        if optlist.compare_cdecg:
+            cdecg_meas = cdecg.get(r.props['phi'], r.props['psi'], meas)
+            cdecg.dev = r.props[meas] - cdecg_meas
+            if not valid_deviation(geomclass, cdecg.dev):
                 continue
-            pgd.msd += pgd.dev**2
+            cdecg.msd += cdecg.dev**2
         N += 1
         if optlist.verbose:
             print '%s %s %s' % (r.props['name'], r.props['chain'], r.props['id']),
@@ -232,14 +232,14 @@ def main(argv):
                 print '%.2f' % c_r.props[meas],
             if optlist.compare_eh:
                 print '%.2f' % eh.get(meas),
-            if optlist.compare_pgd:
-                print '%.2f' % pgd_meas,
+            if optlist.compare_cdecg:
+                print '%.2f' % cdecg_meas,
             if optlist.compare_pdb:
                 print '%+.2f %.2f' % (dev, msd),
             if optlist.compare_eh:
                 print '%+.2f %.2f' % (eh.dev, eh.msd),
-            if optlist.compare_pgd:
-                print '%+.2f %.2f' % (pgd.dev, pgd.msd),
+            if optlist.compare_cdecg:
+                print '%+.2f %.2f' % (cdecg.dev, cdecg.msd),
             print '%d' % N
     print
     print 'Using %d residues' % N
@@ -249,9 +249,9 @@ def main(argv):
     if optlist.compare_eh:
         eh.rmsd = math.sqrt ( eh.msd / N )
         print '%s for %s vs E&H = %.2f' % (meas, pdb, eh.rmsd)
-    if optlist.compare_pgd:
-        pgd.rmsd = math.sqrt ( pgd.msd / N )
-        print '%s for %s vs PGD = %.2f' % (meas, pdb, pgd.rmsd)
+    if optlist.compare_cdecg:
+        cdecg.rmsd = math.sqrt ( cdecg.msd / N )
+        print '%s for %s vs CD-ECG = %.2f' % (meas, pdb, cdecg.rmsd)
 
 def get_geometry(struct, *geomtypes):
     # calculate bond angles
@@ -384,7 +384,7 @@ def optparse_setup():
     parser.set_defaults(
         verbose=False,
         compare_eh=False,
-        compare_pgd=False,
+        compare_cdecg=False,
         )
     parser.add_option( \
         '-v', '--verbose', \
@@ -397,10 +397,10 @@ def optparse_setup():
             dest='compare_eh', \
             help='Compare geometry to Engh & Huber; defaults to %default')
     parser.add_option( \
-        '-p', '--protein-geometry-database', \
+        '-c', '--conformation-dependent-geometry', \
             action='store_true', \
-            dest='compare_pgd', \
-            help='Compare geometry to Protein Geometry Database; defaults to %default')
+            dest='compare_cdecg', \
+            help='Compare geometry to conformation-dependent expected covalent geometry; defaults to %default')
     parser.add_option( \
         '-s', '--pdb-structure', \
             dest='compare_pdb', \
