@@ -111,12 +111,6 @@ def main(argv):
     parser = optparse_setup()
     optlist, args = parser.parse_args()
 
-    # Needed for angles code
-    angles_parser = a.optparse_setup()
-    # Options to use for angles
-    angles_options = []
-    a.optlist, a.args = angles_parser.parse_args(angles_options)
-
     if len(args) != 2:
         parser.error('incorrect number of arguments')
 
