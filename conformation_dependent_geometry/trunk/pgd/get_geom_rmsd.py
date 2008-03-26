@@ -63,20 +63,13 @@ class protein_geometry_database(geom):
             residue = 'default'
             phi = 0
             psi = 0
-        # Note next_res_name
-        elif self.next_res_name == 'PRO':
-            residue = 'glycine'
-        elif self.res_name == 'GLY':
-            residue = 'glycine'
-        elif self.res_name == 'PRO':
-            residue = 'proline'
-        elif self.res_name == 'ILE' \
-                or self.res_name == 'VAL':
-            residue = 'ileval'
-        else:
-            residue = 'other'
         # print 'residue = ', residue
-        fields, geometry = pgd.angles.get_geometry(self.dbdict, residue, phi, psi)
+        fields, geometry = pgd.angles.get_geometry(
+                             self.dbdict, 
+                             self.res_name, 
+                             self.next_res_name, 
+                             phi, 
+                             psi)
         #print geometry.__dict__
         value = getattr(geometry, pgdattr)
         obs = getattr(geometry, 'Observations')

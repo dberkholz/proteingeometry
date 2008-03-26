@@ -49,6 +49,49 @@ databases = {
 'default': moduledir + '/data/engh-huber.txt'
 }
 
+def map_residue_to_type(residue, next_residue):
+    """Accepts two residue names in standard PDB format and returns the
+    residue type the first residue belongs to. Used internally by
+    get_geometry()."""
+
+    # Types
+    glycine = ['GLY']
+    proline = ['PRO']
+    ileval = ['ILE', 'VAL']
+    other = [
+        'ALA', 
+        'ASN', 
+        'ASP', 
+        'CYS', 
+        'GLN', 
+        'GLU', 
+        'LEU', 
+        'LYS', 
+        'MET', 
+        'PHE', 
+        'SER', 
+        'THR', 
+        'TRP', 
+        'TYR', 
+        'VAL'
+        ]
+
+    if residue in glycine:
+        residue_type = 'glycine'
+    elif residue in proline:
+        residue_type = 'proline'
+    elif residue in ileval:
+        residue_type = 'ileval'
+    elif residue in other:
+        residue_type = 'other'
+
+    if next_residue in proline:
+        residue_type = 'preproline'
+
+    vprint('type =', residue_type)
+
+    return residue_type
+
 class bin(object):
     """This class holds all the info about a bin. Bins cannot be instantiated
     without first filling in var_order. See create_database() for that code."""
@@ -134,17 +177,19 @@ def get_fields(database):
             fields = '\t'.join(v.var_order)
             return fields
 
-def get_geometry(dblist, residue, phi, psi):
+def get_geometry(dblist, residue, next_residue, phi, psi):
     """Get the geometry info for a specific residue/phi/psi setting
 
     Return the field names and the geometry."""
 
     vprint("residue = " + residue)
 
+    residue_type = map_residue_to_type(residue, next_residue)
+
     # Decide which database to use
     for database in databases:
         vprint("database = " + database)
-        if residue == database:
+        if residue_type == database:
             dbname=database
             break
         else:
@@ -219,25 +264,17 @@ def optparse_setup():
 
     # Option handling
     dblist = ' '.join(sorted(databases))
-    usage = """usage: %prog [options] [<residue class> <phi> <psi>]
+    usage = """usage: %prog [options] [<residue> <next_residue> <phi> <psi>]
 
-Residue classes:
- Available classes: """ + dblist + """
- 'other': every residue that doesn't have its own class.
- 'preproline': residues preceding proline.
- 'ileval': isoleucine or valine.
- 'default': Engh & Huber values
-
- Unknown residue classes will use the 'other' residue class. This can be useful
- if you want to just pass in the residue name regardless of whether it's a
- class. When no observations exist in the original class, the 'default' class
- is used as a fallback. This is indicated by an observations count of -1.
+ When no observations exist in the original residue group, the 'default' group
+ of Engh & Huber values is used as a fallback. This is indicated by an
+ observations count of -1.
 
 Angles:
  Both angles 'phi' and 'psi' accept either integers or floats between -180 and
  +180.
 
-The arguments <residue class>, <phi> and <psi> are required unless dumping a
+The arguments <residue>, <phi> and <psi> are required unless dumping a
 database.
 
 For definitions of the angles and lengths, refer to karplus-definitions.jpg,
@@ -271,13 +308,14 @@ def main(argv):
     optlist, args = parser.parse_args()
 
     if not optlist.dump:
-        if len(args) != 3:
+        if len(args) != 4:
             parser.error('incorrect number of arguments')
         else:
-            residue = args[0].lower()
+            residue = args[0].upper()
+            next_residue = args[1].upper()
             # int() can't convert from string and from float at the same time
-            phi = int(float(args[1]))
-            psi = int(float(args[2]))
+            phi = int(float(args[2]))
+            psi = int(float(args[3]))
 
     dbdict = create_all_databases(databases)
 
@@ -290,7 +328,7 @@ def main(argv):
 
     if not optlist.dump:
         vprint("phi, psi:", phi, psi)
-        fields, geometry = get_geometry(dbdict, residue, phi, psi)
+        fields, geometry = get_geometry(dbdict, residue, next_residue, phi, psi)
         if fields:
             print fields
         print geometry
