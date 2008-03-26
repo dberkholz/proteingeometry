@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import math, sys, optparse
-import pgd.angles
 
 try:
     import mmLib.Structure, mmLib.FileIO, mmLib.AtomMath
@@ -42,6 +41,7 @@ class geom(object):
 
 class protein_geometry_database(geom):
     def __init__(self, attr):
+        import pgd.angles
         geom.__init__(self, attr)
         # Read in database files etc here
         self.dbdict = pgd.angles.create_all_databases(
