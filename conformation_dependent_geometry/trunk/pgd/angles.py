@@ -29,7 +29,7 @@ Design:
  Huber values.
 """
 
-import os, sys, optparse
+import os, sys
 
 # Program version
 version = '0.3'
@@ -215,6 +215,8 @@ def vprint(*args):
         print >> sys.stderr, ' '.join([str(arg) for arg in args])
 
 def optparse_setup():
+    import optparse
+
     # Option handling
     dblist = ' '.join(sorted(databases))
     usage = """usage: %prog [options] [<residue class> <phi> <psi>]

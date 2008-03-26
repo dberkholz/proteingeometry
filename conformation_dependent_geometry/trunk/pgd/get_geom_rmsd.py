@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import math, sys, optparse
+import math, sys
 
 try:
     import mmLib.Structure, mmLib.FileIO, mmLib.AtomMath
@@ -382,6 +382,8 @@ def get_geometry(struct, *geomtypes):
             r.props['ome'] = math.degrees(r.ome)
  
 def optparse_setup():
+    import optparse
+
     usage = """usage: %prog [options] [<geometry type> <PDB>]"""
 
     parser = optparse.OptionParser(version='%prog ' + version)
