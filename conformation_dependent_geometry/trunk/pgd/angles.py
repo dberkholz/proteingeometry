@@ -49,6 +49,30 @@ databases = {
 'default': moduledir + '/data/engh-huber.txt'
 }
 
+# Angles are defined as tuples. The number indicates which residue of a
+# 3-residue sequence a given atom is in
+
+# These names are keys into the expected_atom_i_seqs
+# Order: phi, psi, omega
+dihedral_atoms = (
+    ((0, 'C' ), (1, 'N' ), (1, 'CA'), (1, 'C' )),
+    ((1, 'N' ), (1, 'CA'), (1, 'C' ), (2, 'N' )),
+    ((1, 'CA'), (1, 'C' ), (2, 'N' ), (2, 'CA')),
+    )
+
+# These names are keys into the expected_atom_i_seqs
+# Order: a1-a7, defined in Karplus 1996
+angle_names = [ 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7' ]
+angle_atoms = (
+    ((0, 'C' ), (1, 'N' ), (1, 'CA')),
+    ((1, 'N' ), (1, 'CA'), (1, 'CB')),
+    ((1, 'N' ), (1, 'CA'), (1, 'C' )),
+    ((1, 'CB'), (1, 'CA'), (1, 'C' )),
+    ((1, 'CA'), (1, 'C' ), (1, 'O' )),
+    ((1, 'CA'), (1, 'C' ), (2, 'N' )),
+    ((1, 'O' ), (1, 'C' ), (2, 'N' )),
+    )
+
 def map_residue_to_type(residue, next_residue):
     """Accepts two residue names in standard PDB format and returns the
     residue type the first residue belongs to. Used internally by
