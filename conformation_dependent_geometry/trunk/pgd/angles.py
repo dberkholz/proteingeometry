@@ -84,7 +84,7 @@ def get_database_attribute_average_name(geometry_name):
 
     return average_name
 
-def map_residue_to_type(residue, next_residue):
+def get_residue_type(residue, next_residue):
     """Accepts two residue names in standard PDB format and returns the
     residue type the first residue belongs to. Used internally by
     get_geometry()."""
@@ -220,7 +220,7 @@ def get_geometry(dblist, residue, next_residue, phi, psi):
 
     vprint("residue = " + residue)
 
-    residue_type = map_residue_to_type(residue, next_residue)
+    residue_type = get_residue_type(residue, next_residue)
 
     # Decide which database to use
     for database in databases:
