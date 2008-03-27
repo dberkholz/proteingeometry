@@ -3,8 +3,8 @@
 """
 angles
 
-Purpose: returns the tau3 angle from our Protein Geometry Database,
- given a residue type and phi and psi angles.
+Purpose: returns geometry values from our Protein Geometry Database,
+ given a residue, the next residue, and phi and psi angles.
 
 Author: Donnie Berkholz <berkhold@science.oregonstate.edu>
  P. Andrew Karplus laboratory, Oregon State University
