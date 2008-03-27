@@ -52,12 +52,7 @@ class protein_geometry_database(geom):
         #print phi, psi
         #print type(attr)
 
-        # angle/length-naming glue
-        if attr[0] != 'a':
-            pgdattr = attr.capitalize()
-        else:
-            pgdattr = attr
-        pgdattr += 'Avg'
+        pgdattr = angles.get_database_attribute_average_name(attr)
 
         if phi > 180 or psi > 180:
             residue = 'default'

@@ -73,6 +73,17 @@ angle_atoms = (
     ((1, 'O' ), (1, 'C' ), (2, 'N' )),
     )
 
+def get_database_attribute_average_name(geometry_name):
+    """Accepts a name of an angle or length and returns the name of
+    that attribute's average in the database"""
+    if geometry_name[0] != 'a':
+        average_name = geometry_name.capitalize()
+    else:
+        average_name = geometry_name
+    average_name += 'Avg'
+
+    return average_name
+
 def map_residue_to_type(residue, next_residue):
     """Accepts two residue names in standard PDB format and returns the
     residue type the first residue belongs to. Used internally by
