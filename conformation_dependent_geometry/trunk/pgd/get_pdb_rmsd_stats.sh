@@ -7,7 +7,7 @@ RESOLUTION_FIELD="4"
 PDB_COUNT="50"
 PDB_URL="http://www.pdb.org/pdb/files/"
 SCRIPT="get_geom_rmsd.py"
-SCRIPT_ARGS="-pe"
+SCRIPT_ARGS="-ce"
 # Which lengths/angles do we care about?
 GEOM_TYPES=(
     "a3"
