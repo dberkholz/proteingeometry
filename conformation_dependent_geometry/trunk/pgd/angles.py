@@ -69,8 +69,8 @@ angle_atoms = (
     ((1, 'N' ), (1, 'CA'), (1, 'C' )),
     ((1, 'CB'), (1, 'CA'), (1, 'C' )),
     ((1, 'CA'), (1, 'C' ), (1, 'O' )),
-    ((1, 'CA'), (1, 'C' ), (2, 'N' )),
-    ((1, 'O' ), (1, 'C' ), (2, 'N' )),
+    ((0, 'CA'), (0, 'C' ), (1, 'N' )),
+    ((0, 'O' ), (0, 'C' ), (1, 'N' )),
     )
 
 def get_database_attribute_average_name(geometry_name):
