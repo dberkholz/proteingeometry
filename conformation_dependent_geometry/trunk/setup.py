@@ -1,5 +1,5 @@
 name='pgd-utils'
-version='0.3'
+version='0.4.1'
 
 import os
 from distutils.core import setup
@@ -17,7 +17,8 @@ setup(name=name,
       author='Donnie Berkholz',
       author_email='berkhold@science.oregonstate.edu',
       packages=['pgd'],
-      scripts=['scripts/pgd-angles'],
+      scripts=['scripts/pgd-angles',
+               'pgd/get_pdb_rmsd_stats.sh'],
       package_data={'pgd': ['data/*.txt'] },
       data_files=[('share/doc/' + name + '-' + version,
                    ['karplus-definitions.jpg',

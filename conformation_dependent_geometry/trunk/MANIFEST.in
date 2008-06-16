@@ -3,4 +3,5 @@ include ChangeLog
 include examples/*
 include *.jpg
 include *.py
+include pgd/*.sh
 include pgd/data/*.txt
