@@ -37,6 +37,9 @@ version = '0.3'
 # Database containing fallback, standard values (likely Engh & Huber)
 default = 'default'
 
+# Minimum number of observations required to return non-E&H geometry
+observation_min = 3
+
 # Map of all residue classes and the file names containing their libraries
 # The key names are the valid residue classes to pass in as arguments
 moduledir = os.path.dirname(__file__)
@@ -251,14 +254,17 @@ def get_geometry(dblist, residue, next_residue, phi, psi):
 
         phi_binsize, psi_binsize = get_binsize(dblist[dbname])
         vprint("binsizes:", phi_binsize, psi_binsize)
-        return fields, dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
+        geometry = dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
+        if getattr(geometry, 'Observations') < observation_min:
+            raise KeyError
     except KeyError:
         vprint("Defaulting to library value")
         dbname=default
 
         phi_binsize, psi_binsize = get_binsize(dblist[dbname])
         phi_r, psi_r = get_default_binsize(phi, psi, phi_binsize, psi_binsize)
-        return fields, dblist[dbname][(phi_r, psi_r)]
+        geometry = dblist[dbname][(phi_r, psi_r)]
+    return fields, geometry
 
 def iterate_over_bins(dbdict):
     """Adds default geometry info to zero-observation bins"""
