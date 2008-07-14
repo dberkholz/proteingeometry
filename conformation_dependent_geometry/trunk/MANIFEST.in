@@ -4,4 +4,4 @@ include examples/*
 include *.jpg
 include *.py
 include pgd/*.sh
-include pgd/data/*.txt
+include pgd/data/*.txt.bz2

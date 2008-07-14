@@ -29,7 +29,7 @@ Design:
  Huber values.
 """
 
-import os, sys
+import os, sys, bz2
 
 # Program version
 version = '0.3'
@@ -44,12 +44,12 @@ observation_min = 3
 # The key names are the valid residue classes to pass in as arguments
 moduledir = os.path.dirname(__file__)
 databases = {
-'other' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro-ile-val.txt',
-'glycine' : moduledir + '/data/1.0-graphdata-gly.txt',
-'proline': moduledir + '/data/1.0-graphdata-pro.txt',
-'preproline': moduledir + '/data/1.0-graphdata-xpro.txt',
-'ileval': moduledir + '/data/1.0-graphdata-ile-val.txt',
-'default': moduledir + '/data/engh-huber.txt'
+'other' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro-ile-val.txt.bz2',
+'glycine' : moduledir + '/data/1.0-graphdata-gly.txt.bz2',
+'proline': moduledir + '/data/1.0-graphdata-pro.txt.bz2',
+'preproline': moduledir + '/data/1.0-graphdata-xpro.txt.bz2',
+'ileval': moduledir + '/data/1.0-graphdata-ile-val.txt.bz2',
+'default': moduledir + '/data/engh-huber.txt.bz2'
 }
 
 # Angles are defined as tuples. The number indicates which residue of a
@@ -170,7 +170,7 @@ def create_database(filename):
 
     Returns the dictionary matrix"""
     dbdict = {}
-    for line in open(filename, 'r'):
+    for line in bz2.BZ2File(filename, 'r'):
         # separate on space
         words = line.split()
 
