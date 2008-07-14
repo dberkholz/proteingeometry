@@ -84,6 +84,17 @@ def get_database_attribute_average_name(geometry_name):
 
     return average_name
 
+def get_database_attribute_deviation_name(geometry_name):
+    """Accepts a name of an angle or length and returns the name of
+    that attribute's deviation in the database"""
+    if geometry_name[0] != 'a':
+        deviation_name = geometry_name.capitalize()
+    else:
+        deviation_name = geometry_name
+    deviation_name += 'Dev'
+
+    return deviation_name
+
 def get_residue_type(residue, next_residue):
     """Accepts two residue names in standard PDB format and returns the
     residue type the first residue belongs to. Used internally by
