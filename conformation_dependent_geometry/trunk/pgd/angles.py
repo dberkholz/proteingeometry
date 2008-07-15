@@ -57,6 +57,7 @@ databases = {
 
 # These names are keys into the expected_atom_i_seqs
 # Order: phi, psi, omega
+dihedral_names = [ 'phi', 'psi', 'ome' ]
 dihedral_atoms = (
     ((0, 'C' ), (1, 'N' ), (1, 'CA'), (1, 'C' )),
     ((1, 'N' ), (1, 'CA'), (1, 'C' ), (2, 'N' )),
