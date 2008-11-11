@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # 
 # Copyright © 2007-2008 Oregon State University
 # 
@@ -25,7 +25,9 @@
 #     Donnie Berkholz <berkhold@science.oregonstate.edu>
 
 import math, sys
-import angles
+# Do it this way so __init__.py runs and initializes angles.optlist. Otherwise
+# we get tracebacks.
+import conformation_dependent_geometry.angles as angles
 
 try:
     import mmLib.Structure, mmLib.FileIO, mmLib.AtomMath
@@ -100,6 +102,34 @@ class protein_geometry_database(geom):
         else:
             return value
 
+class CisPeptide(Exception):
+    def __str__(self):
+        return 'caught %s' % repr(self)
+
+class BadDihedral(Exception):
+    def __str__(self):
+        return 'caught %s' % repr(self)
+
+class NoEquivalentFragment(Exception):
+    def __str__(self):
+        return 'caught %s' % repr(self)
+
+class NoMeasurement(Exception):
+    def __str__(self):
+        return 'caught %s' % repr(self)
+
+class InvalidDeviation(Exception):
+    def __str__(self):
+        return 'caught %s' % repr(self)
+
+class pdb_container(object):
+    def __init__(self, name):
+        self.name = name
+#    def __repr__(self):
+#        return self.name
+    def __str__(self):
+        return self.name
+
 def valid_deviation(geomclass, deviation):
     """If a deviation is too large to be reasonable, ignore it"""
     max_angle_deviation = 40
@@ -142,12 +172,17 @@ def main(argv):
             or meas == 'zeta':
         geomclass = 'torsion'
 
-    if optlist.compare_pdb:
-        cpdb = optlist.compare_pdb
-        cstruct = mmLib.FileIO.LoadStructure(file=cpdb)
-        get_geometry(cstruct, meas)
-        msd = 0
-
+    if optlist.compare_pdbs:
+        cpdbs = []
+        cstructs = {}
+        msd = {}
+        for cpdb in optlist.compare_pdbs:
+            cpdbs.append(pdb_container(name=cpdb))
+        for cpdb in cpdbs:
+            cstructs[cpdb] = mmLib.FileIO.LoadStructure(file=cpdb.name)
+            get_geometry(cstructs[cpdb], meas)
+            msd[cpdb] = 0
+    
     if optlist.compare_eh:
         eh = geom(meas)
         # print eh.__dict__
@@ -164,18 +199,24 @@ def main(argv):
     for r in struct.iter_amino_acids():
         r_atom = r.get_atom('CA')
 
-        if optlist.compare_pdb:
-            c_atom = cstruct.get_equivalent_atom(r_atom)
-            # c_r is the compared residue
+        if optlist.compare_pdbs:
+            c_atoms = {}
+            c_residues = {}
             try:
-                c_r = c_atom.get_fragment()
-            except:
+                for cpdb in cstructs.keys():
+                    c_atoms[cpdb] = cstructs[cpdb].get_equivalent_atom(r_atom)
+                    # c_residues are the compared residues
+                    try:
+                        c_residues[cpdb] = c_atoms[cpdb].get_fragment()
+                    except:
+                        raise NoEquivalentFragment
+                    try:
+                        c_residues[cpdb].props[meas]
+                    except:
+                        raise NoMeasurement
+            except (NoEquivalentFragment, NoMeasurement), e:
+                print e
                 continue
-            try:
-                c_r.props[meas]
-            except:
-                continue
-
         try:
             r.props[meas]
         except:
@@ -208,29 +249,48 @@ def main(argv):
             #print "phi/psi/ome"
             if r.props[meas] > 180:
                 continue
-            if optlist.compare_pdb:
-                if c_r.props[meas] > 180:
+            if optlist.compare_pdbs:
+                # if _any_ residues in set are bad, skip comparing this
+                # residue altogether (XXX FIXME: is this a good idea?)
+                try:
+                    for cpdb in c_residues.keys():
+                        if c_residues[cpdb].props[meas] > 180:
+                            raise BadDihedral
+                except BadDihedral, e:
+                    print e
                     continue
         # Force omega into the -90 to +270 range so it's an easy comparison
         # The other option is doing math in radians with a pi modulus
         if meas == 'ome':
             if r.props[meas] < -90:
                 r.props[meas] += 360
-            if optlist.compare_pdb:
-                if c_r.props[meas] < -90:
-                    c_r.props[meas] += 360
+            if optlist.compare_pdbs:
+                for cpdb in c_residues.keys():
+                    if c_residues[cpdb].props[meas] < -90:
+                        c_residues[cpdb].props[meas] += 360
             # ignore cis peptides
-            if r.props[meas] < 90 and r.props[meas] > -90:
+            try:
+                if r.props[meas] < 90 and r.props[meas] > -90:
+                    raise CisPeptide
+                if optlist.compare_pdbs:
+                    for cpdb in c_residues.keys():
+                        if c_residues[cpdb].props[meas] < 90 and c_residues[cpdb].props[meas] > -90:
+                            raise CisPeptide
+            except CisPeptide, e:
+                print e
                 continue
-            if optlist.compare_pdb:
-                if c_r.props[meas] < 90 and c_r.props[meas] > -90:
-                    continue
 
-        if optlist.compare_pdb:
-            dev = r.props[meas] - c_r.props[meas]
-            if not valid_deviation(geomclass, dev):
+        if optlist.compare_pdbs:
+            dev = {}
+            try:
+                for cpdb in cstructs.keys():
+                    dev[cpdb] = r.props[meas] - c_residues[cpdb].props[meas]
+                    if not valid_deviation(geomclass, dev[cpdb]):
+                        raise InvalidDeviation
+                    msd[cpdb] += dev[cpdb]**2
+            except InvalidDeviation, e:
+                print e
                 continue
-            msd += dev**2
         if optlist.compare_eh:
             eh.dev = r.props[meas] - eh.get(meas)
             if not valid_deviation(geomclass, eh.dev):
@@ -247,14 +307,16 @@ def main(argv):
             print '%s %s %s' % (r.props['name'], r.props['chain'], r.props['id']),
             print '%+.1f %+.1f' % (r.props['phi'], r.props['psi']),
             print '%.2f' % r.props[meas],
-            if optlist.compare_pdb:
-                print '%.2f' % c_r.props[meas],
+            if optlist.compare_pdbs:
+                for cpdb in c_residues.keys():
+                    print '%.2f' % c_residues[cpdb].props[meas],
             if optlist.compare_eh:
                 print '%.2f' % eh.get(meas),
             if optlist.compare_cdecg:
                 print '%.2f' % cdecg_meas,
-            if optlist.compare_pdb:
-                print '%+.2f %.2f' % (dev, msd),
+            if optlist.compare_pdbs:
+                for cpdb in cstructs.keys():
+                    print '%+.2f %.2f' % (dev[cpdb], msd[cpdb]),
             if optlist.compare_eh:
                 print '%+.2f %.2f' % (eh.dev, eh.msd),
             if optlist.compare_cdecg:
@@ -262,9 +324,11 @@ def main(argv):
             print '%d' % N
     print
     print 'Using %d residues' % N
-    if optlist.compare_pdb:
-        rmsd = math.sqrt ( msd / N )
-        print '%s for %s vs %s = %.2f' % (meas, pdb, cpdb, rmsd)
+    if optlist.compare_pdbs:
+        rmsd = {}
+        for cpdb in cstructs.keys():
+            rmsd[cpdb] = math.sqrt ( msd[cpdb] / N )
+            print '%s for %s vs %s = %.2f' % (meas, pdb, cpdb, rmsd[cpdb])
     if optlist.compare_eh:
         eh.rmsd = math.sqrt ( eh.msd / N )
         print '%s for %s vs E&H = %.2f' % (meas, pdb, eh.rmsd)
@@ -422,7 +486,8 @@ def optparse_setup():
             help='Compare geometry to conformation-dependent expected covalent geometry; defaults to %default')
     parser.add_option( \
         '-s', '--pdb-structure', \
-            dest='compare_pdb', \
+            action='append', \
+            dest='compare_pdbs', \
             help='Compare geometry to structure file PDB',
             metavar='PDB',
         )
