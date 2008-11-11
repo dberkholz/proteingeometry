@@ -114,19 +114,24 @@ class BaseException(Exception):
         return 'caught %s' % repr(self)
 
 class CisPeptide(BaseException):
-    pass
+    def __init__(self):
+        pass
 
 class BadDihedral(BaseException):
-    pass
+    def __init__(self):
+        pass
 
 class NoEquivalentFragment(BaseException):
-    pass
+    def __init__(self):
+        pass
 
 class NoMeasurement(BaseException):
-    pass
+    def __init__(self):
+        pass
 
 class InvalidDeviation(BaseException):
-    pass
+    def __init__(self):
+        pass
 
 class pdb_container(object):
     def __init__(self, name):
