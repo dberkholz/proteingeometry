@@ -24,7 +24,7 @@
 # Authors:
 #     Donnie Berkholz <berkhold@science.oregonstate.edu>
 
-import math, sys
+import itertools, math, sys
 # Do it this way so __init__.py runs and initializes angles.optlist. Otherwise
 # we get tracebacks.
 import conformation_dependent_geometry.angles as angles
@@ -34,6 +34,13 @@ try:
 except:
     print "Failed to import mmLib"
     print "Install from http://pymmlib.sourceforge.net/"
+    sys.exit(1)
+
+try:
+    callable(itertools.combinations)
+except:
+    print "Requires itertools.combinations from Python >= 2.6"
+    print "If you aren't using multiple -s args, you can comment this out."
     sys.exit(1)
 
 # Structure.AminoAcidResidue:
@@ -102,31 +109,28 @@ class protein_geometry_database(geom):
         else:
             return value
 
-class CisPeptide(Exception):
+class BaseException(Exception):
     def __str__(self):
         return 'caught %s' % repr(self)
 
-class BadDihedral(Exception):
-    def __str__(self):
-        return 'caught %s' % repr(self)
+class CisPeptide(BaseException):
+    pass
 
-class NoEquivalentFragment(Exception):
-    def __str__(self):
-        return 'caught %s' % repr(self)
+class BadDihedral(BaseException):
+    pass
 
-class NoMeasurement(Exception):
-    def __str__(self):
-        return 'caught %s' % repr(self)
+class NoEquivalentFragment(BaseException):
+    pass
 
-class InvalidDeviation(Exception):
-    def __str__(self):
-        return 'caught %s' % repr(self)
+class NoMeasurement(BaseException):
+    pass
+
+class InvalidDeviation(BaseException):
+    pass
 
 class pdb_container(object):
     def __init__(self, name):
         self.name = name
-#    def __repr__(self):
-#        return self.name
     def __str__(self):
         return self.name
 
@@ -308,8 +312,20 @@ def main(argv):
             print '%+.1f %+.1f' % (r.props['phi'], r.props['psi']),
             print '%.2f' % r.props[meas],
             if optlist.compare_pdbs:
+                residue_msd = 0
+                residue_N = 0
+                measurement_list = [r.props[meas]]
                 for cpdb in c_residues.keys():
                     print '%.2f' % c_residues[cpdb].props[meas],
+                    measurement_list.append(c_residues[cpdb].props[meas])
+                # Use all pairwise combinations to calculate RMSD
+                measurement_combos = itertools.combinations(\
+                                       iterable=measurement_list,
+                                       r=2)
+                for pair in measurement_combos:
+                    residue_msd += (pair[1] - pair[0])**2
+                    residue_N += 1
+                print '%.2f' % math.sqrt ( residue_msd / residue_N ),
             if optlist.compare_eh:
                 print '%.2f' % eh.get(meas),
             if optlist.compare_cdecg:
