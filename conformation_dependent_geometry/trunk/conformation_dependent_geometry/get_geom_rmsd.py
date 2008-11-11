@@ -173,6 +173,8 @@ def main(argv):
     elif meas.startswith('l'):
         geomclass = 'length'
     elif meas == 'ome' \
+            or meas == 'phi' \
+            or meas == 'psi' \
             or meas == 'zeta':
         geomclass = 'torsion'
 
