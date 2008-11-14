@@ -24,13 +24,13 @@
 # Authors:
 #     Donnie Berkholz <berkhold@science.oregonstate.edu>
 
-import itertools, math, sys
+import copy, itertools, math, sys
 # Do it this way so __init__.py runs and initializes angles.optlist. Otherwise
 # we get tracebacks.
 import conformation_dependent_geometry.angles as angles
 
 try:
-    import mmLib.Structure, mmLib.FileIO, mmLib.AtomMath
+    import mmLib.Structure, mmLib.FileIO, mmLib.AtomMath, mmLib.ConsoleOutput
 except:
     print "Failed to import mmLib"
     print "Install from http://pymmlib.sourceforge.net/"
@@ -134,10 +134,11 @@ class InvalidDeviation(BaseException):
         pass
 
 class pdb_container(object):
-    def __init__(self, name):
+    def __init__(self, name, model=1):
         self.name = name
+        self.model = model
     def __str__(self):
-        return self.name
+        return '%s:%s' % (self.name, self.model)
 
 def valid_deviation(geomclass, deviation):
     """If a deviation is too large to be reasonable, ignore it"""
@@ -166,6 +167,9 @@ def main(argv):
     if len(args) != 2:
         parser.error('incorrect number of arguments')
 
+    # Shut up mmLib before we load any structures
+    mmLib.ConsoleOutput.disable()
+
     meas = args[0]
 
     pdb = args[1]
@@ -183,17 +187,45 @@ def main(argv):
             or meas == 'zeta':
         geomclass = 'torsion'
 
-    if optlist.compare_pdbs:
+    if optlist.compare_pdbs or optlist.multiple_models:
         cpdbs = []
         cstructs = {}
         msd = {}
+
+    if optlist.compare_pdbs:
         for cpdb in optlist.compare_pdbs:
             cpdbs.append(pdb_container(name=cpdb))
         for cpdb in cpdbs:
             cstructs[cpdb] = mmLib.FileIO.LoadStructure(file=cpdb.name)
+
+    # Treat as multiple, single-model PDBs by making multiple Structures with
+    # each consecutive model as the default model. This would be easier if the
+    # primary structure was simply another member of a structs{} dictionary.
+    if optlist.multiple_models:
+        # 1. Turn 2+ models in compare_pdb's into separate structures
+        for cpdb in cpdbs:
+            if cstructs[cpdb].count_models() > 1:
+                pass
+        # 2. Turn 2+ models in primary PDB into compare_pdb structures
+        if struct.count_models() > 1:
+            optlist.compare_pdbs.append(pdb)
+            for model in struct.iter_models():
+                id = model.model_id
+                # Don't make a duplicate of the default
+                if id == struct.get_default_model().model_id:
+                    continue
+                cpdb = pdb_container(name=pdb, model=id)
+                cpdbs.append(cpdb)
+                # make a copy so we only change the default model in the copy
+                cstruct = copy.deepcopy(struct)
+                cstruct.set_default_model(id)
+                cstructs[cpdb] = cstruct
+
+    if optlist.compare_pdbs:
+        for cpdb in cpdbs:
             get_geometry(cstructs[cpdb], meas)
             msd[cpdb] = 0
-    
+
     if optlist.compare_eh:
         eh = geom(meas)
         # print eh.__dict__
@@ -215,15 +247,24 @@ def main(argv):
             c_residues = {}
             try:
                 for cpdb in cstructs.keys():
-                    c_atoms[cpdb] = cstructs[cpdb].get_equivalent_atom(r_atom)
+                    # Use Model's version of get_equivalent_atom() instead of
+                    # Structure's so we don't try to grab things from the same
+                    # model id as the primary atom. Instead, we want the
+                    # default model of the comparison atom.
+                    c_atoms[cpdb] = cstructs[cpdb].get_default_model().get_equivalent_atom(r_atom)
                     # c_residues are the compared residues
                     try:
                         c_residues[cpdb] = c_atoms[cpdb].get_fragment()
                     except:
+                        print 'Failed: pdb=%s res=%s meas=%s' \
+                              % (cpdb, r.props['id'], meas)
                         raise NoEquivalentFragment
                     try:
                         c_residues[cpdb].props[meas]
                     except:
+                        print 'Failed: pdb=%s res=%s meas=%s' \
+                              % (cpdb, r.props['id'], meas)
+                        print type(c_residues[cpdb].props)
                         raise NoMeasurement
             except (NoEquivalentFragment, NoMeasurement), e:
                 print e
@@ -491,6 +532,8 @@ def optparse_setup():
         verbose=False,
         compare_eh=False,
         compare_cdecg=False,
+        compare_pdbs=[],
+        multiple_models=False,
         )
     parser.add_option( \
         '-v', '--verbose', \
@@ -512,8 +555,12 @@ def optparse_setup():
             action='append', \
             dest='compare_pdbs', \
             help='Compare geometry to structure file PDB',
-            metavar='PDB',
-        )
+            metavar='PDB')
+    parser.add_option( \
+        '-m', '--multiple-models', \
+            action='store_true', \
+            dest='multiple_models', \
+            help='Compare multiple models within a single PDB instead of just using the default model; defaults to %default')
 
     return parser
 
