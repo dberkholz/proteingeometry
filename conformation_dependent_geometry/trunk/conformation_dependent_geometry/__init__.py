@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # Copyright © 2007-2008 Oregon State University
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
