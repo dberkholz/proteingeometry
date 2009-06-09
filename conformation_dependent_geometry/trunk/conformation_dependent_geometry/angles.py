@@ -101,8 +101,8 @@ angle_atoms = (
     ((1, 'N' ), (1, 'CA'), (1, 'C' )),
     ((1, 'CB'), (1, 'CA'), (1, 'C' )),
     ((1, 'CA'), (1, 'C' ), (1, 'O' )),
-    ((0, 'CA'), (0, 'C' ), (1, 'N' )),
-    ((0, 'O' ), (0, 'C' ), (1, 'N' )),
+    ((1, 'CA'), (1, 'C' ), (2, 'N' )),
+    ((1, 'O' ), (1, 'C' ), (2, 'N' )),
     )
 
 def get_database_attribute_average_name(geometry_name):
@@ -262,11 +262,7 @@ def get_fields(database):
             fields = '\t'.join(v.var_order)
             return fields
 
-def get_geometry(dblist, residue, next_residue, phi, psi):
-    """Get the geometry info for a specific residue/phi/psi setting
-
-    Return the field names and the geometry."""
-
+def get_database_name(residue, next_residue):
     vprint("residue = " + residue)
 
     residue_type = get_residue_type(residue, next_residue)
@@ -280,23 +276,47 @@ def get_geometry(dblist, residue, next_residue, phi, psi):
         else:
             dbname = 'other'
 
+    return dbname
+
+def jackknife_geometry(dblist, residue, next_residue, phi, psi):
+    dbname = get_database_name(residue, next_residue)
+    try:
+        vprint("Database name = " + dbname)
+        phi_binsize, psi_binsize = get_binsize(dblist[dbname])
+        vprint("binsizes:", phi_binsize, psi_binsize)
+
+        geometry = dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
+        if getattr(geometry, 'Observations') < observation_min:
+            raise KeyError
+
+        # TODO: Jackknife here. Need access to every angle and length
+        # from this residue to jackknife them. Pass in a geometry dict of them?
+
+    # We don't change the Engh & Huber fallbacks
+    except KeyError:
+        pass
+
+def get_geometry(dblist, residue, next_residue, phi, psi):
+    """Get the geometry info for a specific residue/phi/psi setting
+
+    Return the field names and the geometry."""
+
+    dbname = get_database_name(residue, next_residue)
     fields = get_fields(dblist[dbname])
 
     try:
-        #vprint("Database list = ", dblist)
         vprint("Database name = " + dbname)
-        #vprint("Database = ", dblist[dbname])
-
         phi_binsize, psi_binsize = get_binsize(dblist[dbname])
         vprint("binsizes:", phi_binsize, psi_binsize)
+
         geometry = dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
         if getattr(geometry, 'Observations') < observation_min:
             raise KeyError
     except KeyError:
         library = default
-        if residue_type == 'proline':
+        if dbname == 'proline':
             library = 'default-pro'
-        elif residue_type == 'glycine':
+        elif dbname == 'glycine':
             library = 'default-gly'
         dbname = library
         vprint("Defaulting to library value " + library)
