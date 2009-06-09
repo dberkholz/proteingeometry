@@ -73,6 +73,10 @@ databases = {
 'proline': moduledir + '/data/1.0-graphdata-pro.txt.bz2',
 'preproline': moduledir + '/data/1.0-graphdata-xpro.txt.bz2',
 'ileval': moduledir + '/data/1.0-graphdata-ile-val.txt.bz2',
+'nosec': moduledir + '/data/1.0-graphdata-nosec.txt.bz2',
+'all': moduledir + '/data/1.0-graphdata-all20-plus-xpro.txt.bz2',
+'default-pro': moduledir + '/data/engh-huber-pro.txt.bz2',
+'default-gly': moduledir + '/data/engh-huber-gly.txt.bz2',
 'default': moduledir + '/data/engh-huber.txt.bz2'
 }
 
@@ -188,7 +192,13 @@ class bin(object):
     def __str__(self):
         """Print all class attributes"""
 
-        return '\t'.join(str(getattr(self, attr)) for attr in self.var_order)
+        ret_list = []
+        for attr in self.var_order:
+            try:
+                ret_list.append( str( getattr(self, attr) ) )
+            except AttributeError:
+                continue
+        return '\t'.join(ret_list)
 
 def create_database(filename):
     """Create a dictionary matrix holding all of the bins
@@ -205,8 +215,8 @@ def create_database(filename):
             continue
 
         # grab variables we need to set up the class
-        phi = int(words[0])
-        psi = int(words[2])
+        phi = int(float(words[0]))
+        psi = int(float(words[2]))
 
         # instantiate the class and fill it
         dbdict[(phi,psi)] = bin(words)
@@ -227,7 +237,7 @@ def get_binsize(dbdict):
     for v in dbdict.itervalues():
         phi_binsize = v.PhiStop - v.PhiStart
         psi_binsize = v.PsiStop - v.PsiStart
-        return phi_binsize, psi_binsize
+        return int(phi_binsize), int(psi_binsize)
 
 def get_default_binsize(phi, psi, phi_binsize, psi_binsize):
     """Find the default bin size, using specialized code for large bins"""
@@ -263,12 +273,12 @@ def get_geometry(dblist, residue, next_residue, phi, psi):
 
     # Decide which database to use
     for database in databases:
-        vprint("database = " + database)
+        #vprint("database = " + database)
         if residue_type == database:
-            dbname=database
+            dbname = database
             break
         else:
-            dbname='other'
+            dbname = 'other'
 
     fields = get_fields(dblist[dbname])
 
@@ -283,8 +293,13 @@ def get_geometry(dblist, residue, next_residue, phi, psi):
         if getattr(geometry, 'Observations') < observation_min:
             raise KeyError
     except KeyError:
-        vprint("Defaulting to library value")
-        dbname=default
+        library = default
+        if residue_type == 'proline':
+            library = 'default-pro'
+        elif residue_type == 'glycine':
+            library = 'default-gly'
+        dbname = library
+        vprint("Defaulting to library value " + library)
 
         phi_binsize, psi_binsize = get_binsize(dblist[dbname])
         phi_r, psi_r = get_default_binsize(phi, psi, phi_binsize, psi_binsize)
