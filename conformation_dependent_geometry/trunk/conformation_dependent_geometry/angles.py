@@ -53,7 +53,7 @@ Design:
  Huber values.
 """
 
-import os, sys, bz2
+import math, os, sys, bz2
 
 # Program version
 version = '0.3'
@@ -278,7 +278,7 @@ def get_database_name(residue, next_residue):
 
     return dbname
 
-def jackknife_geometry(dblist, residue, next_residue, phi, psi):
+def jackknife_geometry(dblist, residue, next_residue, phi, psi, param, value):
     dbname = get_database_name(residue, next_residue)
     try:
         vprint("Database name = " + dbname)
@@ -286,11 +286,46 @@ def jackknife_geometry(dblist, residue, next_residue, phi, psi):
         vprint("binsizes:", phi_binsize, psi_binsize)
 
         geometry = dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
-        if getattr(geometry, 'Observations') < observation_min:
+        old_obs = getattr(geometry, 'Observations')
+        if old_obs < observation_min:
             raise KeyError
 
-        # TODO: Jackknife here. Need access to every angle and length
-        # from this residue to jackknife them. Pass in a geometry dict of them?
+        old_avg = getattr(
+            geometry,
+            get_database_attribute_average_name(param))
+        old_dev = getattr(
+            geometry,
+            get_database_attribute_deviation_name(param))
+
+        new_obs = old_obs - 1
+
+        # Algorithms from Knuth
+        new_avg = old_avg + (value - old_avg)/new_obs
+
+        old_S = old_dev**2 * (old_obs - 1)
+        new_S = old_S + (value - old_avg) * (value - new_avg)
+        new_dev = math.sqrt(new_S / (new_obs - 1))
+
+        if value < old_avg and value > new_avg:
+            print 'Standard deviation should decrease'
+        if value > old_avg and value < new_avg:
+            print 'Standard deviation should decrease'
+        if new_dev < old_dev:
+            print 'Standard deviation decreased'
+
+        # Write the new values to the dictionary
+        setattr(
+            geometry,
+            get_database_attribute_average_name(param),
+            new_avg)
+        setattr(
+            geometry,
+            get_database_attribute_deviation_name(param),
+            new_dev)
+        setattr(
+            geometry,
+            'Observations',
+            new_obs)
 
     # We don't change the Engh & Huber fallbacks
     except KeyError:
