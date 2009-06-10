@@ -278,7 +278,7 @@ def get_database_name(residue, next_residue):
 
     return dbname
 
-def jackknife_geometry(dblist, residue, next_residue, phi, psi, param, value):
+def jackknife_geometry(dblist, residue, next_residue, phi, psi, param, value, jackknife_deviation=False):
     dbname = get_database_name(residue, next_residue)
     try:
         vprint("Database name = " + dbname)
@@ -300,28 +300,37 @@ def jackknife_geometry(dblist, residue, next_residue, phi, psi, param, value):
         new_obs = old_obs - 1
 
         # Algorithms from Knuth
-        new_avg = old_avg + (value - old_avg)/new_obs
+        new_avg = old_avg + (old_avg - value)/new_obs
 
-        old_S = old_dev**2 * (old_obs - 1)
-        new_S = old_S + (value - old_avg) * (value - new_avg)
-        new_dev = math.sqrt(new_S / (new_obs - 1))
+        if jackknife_deviation:
 
-        if value < old_avg and value > new_avg:
-            print 'Standard deviation should decrease'
-        if value > old_avg and value < new_avg:
-            print 'Standard deviation should decrease'
-        if new_dev < old_dev:
-            print 'Standard deviation decreased'
+            old_S = old_dev**2 * (old_obs - 1)
+        
+            S_difference = (value - old_avg) * (value - new_avg)
+            new_S = old_S - S_difference
+
+            try:
+                # Lack of precision in the input numbers probably explains
+                # the instability
+                new_dev = math.sqrt(new_S / (new_obs - 1))
+                dev_difference = new_dev - old_dev
+                if abs(dev_difference) > 0.2:
+                    print '%.2f' % dev_difference
+            except ValueError:
+                print '%.2f %.2f %.2f %.2f %.2f %.2f %.2f %d' % \
+                      (new_S, old_S, S_difference, old_dev, new_avg, old_avg, value, new_obs)
+                raise ValueError
+
+            setattr(
+                geometry,
+                get_database_attribute_deviation_name(param),
+                new_dev)
 
         # Write the new values to the dictionary
         setattr(
             geometry,
             get_database_attribute_average_name(param),
             new_avg)
-        setattr(
-            geometry,
-            get_database_attribute_deviation_name(param),
-            new_dev)
         setattr(
             geometry,
             'Observations',
