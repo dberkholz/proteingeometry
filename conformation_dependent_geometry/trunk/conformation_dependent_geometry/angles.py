@@ -183,10 +183,14 @@ class bin(object):
 
         # assign values to bin
         for i, slot in enumerate(self.var_order):
-            if '.' in words[i]:
-                words[i] = float(words[i])
-            else:
-                words[i] = int(words[i])
+            try:
+                if '.' in words[i]:
+                    words[i] = float(words[i])
+                else:
+                    words[i] = int(words[i])
+            # Handle as a string
+            except ValueError:
+                pass
             setattr(self, slot, words[i])
 
     def __str__(self):
