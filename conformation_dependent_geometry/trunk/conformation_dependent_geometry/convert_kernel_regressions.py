@@ -6,7 +6,7 @@
 import bz2, sys
 # Do it this way so __init__.py runs and initializes angles.optlist. Otherwise
 # we get tracebacks.
-import conformation_dependent_geometry.angles as angles
+from conformation_dependent_geometry.angles import bin, databases, create_all_databases
 
 results_file = 'data/KernRegr_CDL.txt'
 
@@ -58,10 +58,10 @@ type_map = {
     }
 
 
-class bin(angles.bin):
+class dunbrack_bin(bin):
     def __init__(self, words):
         #print self.var_order
-        super(bin, self).__init__(words)
+        super(dunbrack_bin, self).__init__(words)
 
 
 def read_dunbrack(infile):
@@ -85,7 +85,7 @@ def read_dunbrack(infile):
 
         # Create sorted list of available geometry attributes
         if words[0] == 'ResTypeGroup':
-            bin.var_order = words
+            dunbrack_bin.var_order = words
             continue
 
         # grab variables we need to set up the class
@@ -100,7 +100,7 @@ def read_dunbrack(infile):
 
         if (phi,psi) in dunbrack_class_dict[dunbrack_class]:
             print 'Overwriting', phi,psi
-        dunbrack_class_dict[dunbrack_class][(phi,psi)] = bin(words)
+        dunbrack_class_dict[dunbrack_class][(phi,psi)] = dunbrack_bin(words)
 
     #print dunbrack_class_dict.keys()
     #for key in dunbrack_class_dict:
@@ -110,7 +110,7 @@ def read_dunbrack(infile):
 
 
 def translate_dunbrack_bin(dunbrack_bin):
-    database_bin = angles.bin(words='')
+    database_bin = bin(words='')
 
     # We also need to set up PhiStart, PhiStop, PsiStart, PsiStop,
     # Observations.  The file is missing omega, chi, zeta, hbond.
@@ -146,12 +146,12 @@ def translate_dunbrack_bin(dunbrack_bin):
 
 def convert_dunbrack_database():
     # The only reason we run this is to set up the angles.bin attributes list
-    angles.create_all_databases(angles.databases)
+    create_all_databases(databases)
 
     dunbrack_class_dict = read_dunbrack(results_file)
     unused_attribs = ['PhiAvg', 'PhiDev', 'PsiAvg', 'PsiDev', 'OmeAvg', 'OmeDev', 'ChiAvg', 'ChiDev', 'ZetaAvg', 'ZetaDev', 'HBondAvg', 'HBondDev']
     for attrib in unused_attribs:
-        angles.bin.var_order.remove(attrib)
+        bin.var_order.remove(attrib)
 
     # Convert data and print it to file
     for dunbrack_dict in dunbrack_class_dict:
