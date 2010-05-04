@@ -28,6 +28,7 @@
 # dictionary to file using angles.py dump feature
 
 import bz2, sys
+from os.path import exists, getmtime
 # Do it this way so __init__.py runs and initializes angles.optlist. Otherwise
 # we get tracebacks.
 from conformation_dependent_geometry.angles import bin, databases, create_database, optlist
@@ -187,9 +188,19 @@ def convert_dunbrack_database():
         # Used for printing the field names at the top of the file
         first_dependent = True
 
-        filename_base = 'data/1.0-dunbrack-'
-        independent = bz2.BZ2File(filename_base + class_map[(dunbrack_dict, 'I')] + '.bz2', 'w')
-        dependent   = bz2.BZ2File(filename_base + class_map[(dunbrack_dict, 'B')] + '.bz2', 'w')
+        base = 'data/1.0-dunbrack-'
+        independent_file = base + class_map[(dunbrack_dict, 'I')] + '.bz2'
+        dependent_file = base + class_map[(dunbrack_dict, 'B')] + '.bz2'
+
+        # FIXME: Only generate if the CDL file is newer than the .bz2's
+        if exists(independent_file) and exists(dependent_file):
+            orig_mtime = getmtime(results_file)
+            if getmtime(independent_file) >= orig_mtime \
+                   and getmtime(dependent_file) >= orig_mtime:
+                continue
+
+        independent = bz2.BZ2File(independent_file, 'w')
+        dependent   = bz2.BZ2File(dependent_file, 'w')
 
         for dunbrack_bin in dunbrack_class_dict[dunbrack_dict]:
             pgd_bin = translate_dunbrack_bin(dunbrack_class_dict[dunbrack_dict][dunbrack_bin])
