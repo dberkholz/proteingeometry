@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+# 
 # Copyright © 2007-2008 Oregon State University
+# Copyright © 2010 Mayo Clinic College of Medicine
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +22,7 @@
 # THE SOFTWARE.
 # 
 # Authors:
-#     Donnie Berkholz <berkhold@science.oregonstate.edu>
+#     Donnie Berkholz <donnie.berkholz@gmail.com>
 
 import angles
 #import get_geom_rmsd
@@ -28,6 +30,11 @@ import angles
 angles_parser = angles.optparse_setup()
 angles_options = []
 angles.optlist, angles.args = angles_parser.parse_args(angles_options)
+
+from convert_kernel_regressions import convert_dunbrack_database
+
+# Make sure our PGD-formatted databases are always up-to-date
+convert_dunbrack_database()
 
 #get_geom_rmsd_parser = get_geom_rmsd.optparse_setup()
 #get_geom_rmsd_options = []
