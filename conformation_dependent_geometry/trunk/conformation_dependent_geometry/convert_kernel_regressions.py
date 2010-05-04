@@ -189,8 +189,8 @@ def convert_dunbrack_database():
         first_dependent = True
 
         base = 'data/1.0-dunbrack-'
-        independent_file = base + class_map[(dunbrack_dict, 'I')] + '.bz2'
-        dependent_file = base + class_map[(dunbrack_dict, 'B')] + '.bz2'
+        independent_file = base + class_map[(dunbrack_dict, 'I')] + '.txt.bz2'
+        dependent_file = base + class_map[(dunbrack_dict, 'B')] + '.txt.bz2'
 
         if exists(independent_file) and exists(dependent_file):
             orig_mtime = getmtime(results_file)
