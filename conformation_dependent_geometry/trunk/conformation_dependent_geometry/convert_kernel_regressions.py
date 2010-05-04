@@ -192,7 +192,6 @@ def convert_dunbrack_database():
         independent_file = base + class_map[(dunbrack_dict, 'I')] + '.bz2'
         dependent_file = base + class_map[(dunbrack_dict, 'B')] + '.bz2'
 
-        # FIXME: Only generate if the CDL file is newer than the .bz2's
         if exists(independent_file) and exists(dependent_file):
             orig_mtime = getmtime(results_file)
             if getmtime(independent_file) >= orig_mtime \
