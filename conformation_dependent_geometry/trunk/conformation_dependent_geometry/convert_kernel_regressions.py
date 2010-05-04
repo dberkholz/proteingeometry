@@ -6,7 +6,7 @@
 import bz2, sys
 # Do it this way so __init__.py runs and initializes angles.optlist. Otherwise
 # we get tracebacks.
-from conformation_dependent_geometry.angles import bin, databases, create_all_databases
+from conformation_dependent_geometry.angles import bin, databases, create_database, optlist
 
 results_file = 'data/KernRegr_CDL.txt'
 
@@ -146,32 +146,39 @@ def translate_dunbrack_bin(dunbrack_bin):
 
 def convert_dunbrack_database():
     # The only reason we run this is to set up the angles.bin attributes list
-    create_all_databases(databases)
+    create_database(databases['other'])
 
-    dunbrack_class_dict = read_dunbrack(results_file)
+    # set up which properties are in bins
     unused_attribs = ['PhiAvg', 'PhiDev', 'PsiAvg', 'PsiDev', 'OmeAvg', 'OmeDev', 'ChiAvg', 'ChiDev', 'ZetaAvg', 'ZetaDev', 'HBondAvg', 'HBondDev']
+
     for attrib in unused_attribs:
         bin.var_order.remove(attrib)
+
+    dunbrack_class_dict = read_dunbrack(results_file)
 
     # Convert data and print it to file
     for dunbrack_dict in dunbrack_class_dict:
         # We only want to print backbone-independent data once
         found_independent = False
+        # Used for printing the field names at the top of the file
+        first_dependent = True
 
         filename_base = 'data/1.0-dunbrack-'
         independent = bz2.BZ2File(filename_base + class_map[(dunbrack_dict, 'I')] + '.bz2', 'w')
         dependent   = bz2.BZ2File(filename_base + class_map[(dunbrack_dict, 'B')] + '.bz2', 'w')
-
-        # Call angles.get_fields(pgd_dict) to print field names
 
         for dunbrack_bin in dunbrack_class_dict[dunbrack_dict]:
             pgd_bin = translate_dunbrack_bin(dunbrack_class_dict[dunbrack_dict][dunbrack_bin])
             if dunbrack_class_dict[dunbrack_dict][dunbrack_bin].S == 'I':
                 if found_independent:
                     continue
+                print >> independent, '\t'.join(pgd_bin.var_order)
                 print >> independent, pgd_bin
                 found_independent = True
             elif dunbrack_class_dict[dunbrack_dict][dunbrack_bin].S == 'B':
+                if first_dependent:
+                    print >> dependent, '\t'.join(pgd_bin.var_order)
+                    first_dependent = False
                 print >> dependent, pgd_bin
 
         independent.close()
