@@ -40,7 +40,7 @@ except:
 # Program version                                                              
 version = '0.1'
 
-def print_restraints(dbdict, struct):
+def print_restraints(geom, struct):
     # Basic design:
     # - Read PDB
     # - Iterate over all residues
@@ -104,12 +104,11 @@ def print_restraints(dbdict, struct):
                 else:
                     continue
 
-        fields, geometry = angles.get_geometry(
-                             dbdict, 
+        fields, geometry = geom[
                              r.props['name'], 
                              next_res.props['name'], 
                              r.props['phi'], 
-                             r.props['psi'])
+                             r.props['psi']]
 
         for angle_definition, angle_name in zip(
             angles.angle_atoms,
@@ -191,15 +190,14 @@ def main(argv):
     if len(args) != 1:
         parser.error('incorrect number of arguments')
 
-    dbdict = angles.create_all_databases(angles.databases)
-
+    geom = angles.setup()
 
     # Shut up mmLib before we load any structures
     mmLib.ConsoleOutput.disable()
 
     pdb = args[0]
     struct = mmLib.FileIO.LoadStructure(file=pdb)
-    print_restraints(dbdict, struct)
+    print_restraints(geom, struct)
 
 
 if __name__ == '__main__':
