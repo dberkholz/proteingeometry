@@ -469,34 +469,19 @@ def jackknife_geometry(dblist, residue, next_residue, phi, psi, param, value, ja
     except KeyError:
         pass
 
-def get_geometry(dblist, residue, next_residue, phi, psi):
+def get_geometry(residue, next_residue, phi, psi):
     """Get the geometry info for a specific residue/phi/psi setting
 
     Return the field names and the geometry."""
 
-    dbname = get_database_name(residue, next_residue)
-    fields = get_fields(dblist[dbname])
-
+    global geom
     try:
-        vprint("Database name = " + dbname)
-        phi_binsize, psi_binsize = get_binsize(dblist[dbname])
-        vprint("binsizes:", phi_binsize, psi_binsize)
+        geom
+    except:
+        geom = setup()
 
-        geometry = dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
-        if getattr(geometry, 'Observations') < observation_min:
-            raise KeyError
-    except KeyError:
-        library = default
-        if dbname == 'proline':
-            library = 'default-proline'
-        elif dbname == 'glycine':
-            library = 'default-glycine'
-        dbname = library
-        vprint("Defaulting to library value " + library)
+    fields, geometry = geom[residue, next_residue, phi, psi]
 
-        phi_binsize, psi_binsize = get_binsize(dblist[dbname])
-        phi_r, psi_r = get_default_binsize(phi, psi, phi_binsize, psi_binsize)
-        geometry = dblist[dbname][(phi_r, psi_r)]
     return fields, geometry
 
 def iterate_over_bins(dbdict):
@@ -587,9 +572,22 @@ which installs with the documentation."""
             metavar='CLASS')
     return parser
 
+def setup():
+    geom = geometry_getter()
+
+    for method in databases:
+        for source in databases[method]:
+            dblist = create_all_databases(databases[method][source])
+            geom.load(dblist=dblist,
+                      source=source,
+                      method=method)
+    return geom
+    
+
 def main(argv):
     global optlist
     global args
+    global geom
     parser = optparse_setup()
     optlist, args = parser.parse_args()
 
@@ -603,14 +601,7 @@ def main(argv):
             phi = int(float(args[2]))
             psi = int(float(args[3]))
 
-    geom = geometry_getter()
-
-    for method in databases:
-        for source in databases[method]:
-            dblist = create_all_databases(databases[method][source])
-            geom.load(dblist=dblist,
-                      source=source,
-                      method=method)
+    geom = setup()
 
     if optlist.add_empty or optlist.dump:
         if optlist.dump:

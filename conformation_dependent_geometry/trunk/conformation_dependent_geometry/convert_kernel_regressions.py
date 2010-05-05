@@ -171,7 +171,7 @@ def translate_dunbrack_bin(dunbrack_bin):
 
 def convert_dunbrack_database():
     # The only reason we run this is to set up the angles.bin attributes list
-    create_database(databases['other'])
+    create_database(databases['independent']['eh']['default'])
 
     # set up which properties are in bins
     unused_attribs = ['PhiAvg', 'PhiDev', 'PsiAvg', 'PsiDev', 'OmeAvg', 'OmeDev', 'ChiAvg', 'ChiDev', 'ZetaAvg', 'ZetaDev', 'HBondAvg', 'HBondDev']
