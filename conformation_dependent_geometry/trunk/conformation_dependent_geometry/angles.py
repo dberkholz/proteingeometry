@@ -182,6 +182,7 @@ def get_residue_type(residue, next_residue):
         'CYS', 
         'GLN', 
         'GLU', 
+        'HIS',
         'LEU', 
         'LYS', 
         'MET', 
@@ -190,7 +191,6 @@ def get_residue_type(residue, next_residue):
         'THR', 
         'TRP', 
         'TYR', 
-        'VAL'
         ]
 
     residue_type = []
@@ -297,7 +297,7 @@ class geometry_getter(object):
                         if not residue_class:
                             residue_class = ['default']
 
-                residue_class = ''.join(residue_class)
+                residue_class = residue_class[0]
 
                 res_db = source[residue_class]
                 # Do the lookup
@@ -305,7 +305,7 @@ class geometry_getter(object):
 
 
                 try:
-                    vprint("Database name = " + residue_class)
+                    vprint("Database name = " + ''.join(residue_class))
                     phi_binsize, psi_binsize = get_binsize(res_db)
                     vprint("binsizes:", phi_binsize, psi_binsize)
                     # find closest key -- NOTE: this will find a key no matter
