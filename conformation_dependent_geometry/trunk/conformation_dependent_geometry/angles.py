@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # 
 # Copyright © 2007-2008 Oregon State University
+# Copyright © 2010 Mayo Clinic College of Medicine
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +23,7 @@
 # THE SOFTWARE.
 # 
 # Authors:
-#     Donnie Berkholz <berkhold@science.oregonstate.edu>
+#     Donnie Berkholz <donnie.berkholz@gmail.com>
 
 """
 angles
@@ -67,17 +68,54 @@ observation_min = 3
 # Map of all residue classes and the file names containing their libraries
 # The key names are the valid residue classes to pass in as arguments
 moduledir = os.path.dirname(__file__)
+
+# General design of using Dunbrack data: A dictionary of bins should first
+# look to Dunbrack, then automatically and transparently fall back to
+# PGD. This will require knowledge of backup dictionaries at the dbdict level,
+# and it needs to be smart enough to do this: Dunbrack backbone-dependent, PGD
+# backbone-dependent, Dunbrack global average, PGD global average. So we will
+# need a new class that holds two dictionaries in parallel per residue type
+# and does the magic when a bin is requested.
+backbone_independent_databases = {}
 databases = {
-'other' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro-ile-val.txt.bz2',
-'glycine' : moduledir + '/data/1.0-graphdata-gly.txt.bz2',
-'proline': moduledir + '/data/1.0-graphdata-pro.txt.bz2',
-'preproline': moduledir + '/data/1.0-graphdata-xpro.txt.bz2',
-'ileval': moduledir + '/data/1.0-graphdata-ile-val.txt.bz2',
-'nosec': moduledir + '/data/1.0-graphdata-nosec.txt.bz2',
-'all': moduledir + '/data/1.0-graphdata-all20-plus-xpro.txt.bz2',
-'default-pro': moduledir + '/data/engh-huber-pro.txt.bz2',
-'default-gly': moduledir + '/data/engh-huber-gly.txt.bz2',
-'default': moduledir + '/data/engh-huber.txt.bz2'
+'independent': {},
+'dependent': {},
+}
+
+databases['independent']['dunbrack'] = {
+    'default' : moduledir + '/data/1.0-dunbrack-default.txt.bz2',
+    'glycine' : moduledir + '/data/1.0-dunbrack-default-glycine.txt.bz2',
+    'ileval': moduledir + '/data/1.0-dunbrack-default-ileval.txt.bz2',
+    'proline': moduledir + '/data/1.0-dunbrack-default-proline.txt.bz2',
+    'preproline': moduledir + '/data/1.0-dunbrack-default-preproline.txt.bz2',
+    ('glycine','preproline') : moduledir + '/data/1.0-dunbrack-default-glycine-preproline.txt.bz2',
+    ('ileval','preproline'): moduledir + '/data/1.0-dunbrack-default-ileval-preproline.txt.bz2',
+    ('proline','preproline'): moduledir + '/data/1.0-dunbrack-default-proline-preproline.txt.bz2',
+}
+
+databases['independent']['eh'] = {
+    'default': moduledir + '/data/engh-huber.txt.bz2',
+    'glycine': moduledir + '/data/engh-huber-gly.txt.bz2',
+    'proline': moduledir + '/data/engh-huber-pro.txt.bz2',
+}
+
+databases['dependent']['dunbrack'] = {
+    'other' : moduledir + '/data/1.0-dunbrack-other.txt.bz2',
+    'glycine' : moduledir + '/data/1.0-dunbrack-glycine.txt.bz2',
+    'ileval': moduledir + '/data/1.0-dunbrack-ileval.txt.bz2',
+    'proline': moduledir + '/data/1.0-dunbrack-proline.txt.bz2',
+    'preproline': moduledir + '/data/1.0-dunbrack-preproline.txt.bz2',
+    ('glycine','preproline') : moduledir + '/data/1.0-dunbrack-glycine-preproline.txt.bz2',
+    ('ileval','preproline'): moduledir + '/data/1.0-dunbrack-ileval-preproline.txt.bz2',
+    ('proline','preproline'): moduledir + '/data/1.0-dunbrack-proline-preproline.txt.bz2',
+}
+
+databases['dependent']['pgd'] = {
+    'other' : moduledir + '/data/1.0-graphdata-all-but-gly-pro-xpro-ile-val.txt.bz2',
+    'glycine' : moduledir + '/data/1.0-graphdata-gly.txt.bz2',
+    'ileval': moduledir + '/data/1.0-graphdata-ile-val.txt.bz2',
+    'proline': moduledir + '/data/1.0-graphdata-pro.txt.bz2',
+    'preproline': moduledir + '/data/1.0-graphdata-xpro.txt.bz2',
 }
 
 # Angles are defined as tuples. The number indicates which residue of a
@@ -138,6 +176,7 @@ def get_residue_type(residue, next_residue):
     ileval = ['ILE', 'VAL']
     other = [
         'ALA', 
+        'ARG', 
         'ASN', 
         'ASP', 
         'CYS', 
@@ -154,18 +193,18 @@ def get_residue_type(residue, next_residue):
         'VAL'
         ]
 
-    residue_type = None
+    residue_type = []
     if residue in glycine:
-        residue_type = 'glycine'
+        residue_type.append('glycine')
     elif residue in proline:
-        residue_type = 'proline'
+        residue_type.append('proline')
     elif residue in ileval:
-        residue_type = 'ileval'
+        residue_type.append('ileval')
     elif residue in other:
-        residue_type = 'other'
+        residue_type.append('other')
 
     if next_residue in proline:
-        residue_type = 'preproline'
+        residue_type.append('preproline')
 
     vprint('type =', residue_type)
 
@@ -177,12 +216,13 @@ class bin(object):
 
     def __init__(self, words):
         """Fill in a bin, reading geometry info from words"""
+        self.local_var_order = self.var_order
 
         if not len(words):
             return
 
         # assign values to bin
-        for i, slot in enumerate(self.var_order):
+        for i, slot in enumerate(self.local_var_order):
             try:
                 if '.' in words[i]:
                     words[i] = float(words[i])
@@ -197,12 +237,97 @@ class bin(object):
         """Print all class attributes"""
 
         ret_list = []
-        for attr in self.var_order:
+        for attr in self.local_var_order:
             try:
                 ret_list.append( str( getattr(self, attr) ) )
             except AttributeError:
                 continue
         return '\t'.join(ret_list)
+
+class InvalidSource(BaseException):
+    def __init__(self):
+        BaseException.__init__()
+
+class geometry_getter(object):
+    def __init__(self):
+        # All the data will get stored here
+        self.sources = {}
+
+    # Load dictionaries into object
+    def load(self, dblist, source='pgd', method='dependent'):
+        try:
+            self.sources[method]
+        except:
+            self.sources[method] = {}
+        self.sources[method][source] = dblist
+
+    # We'll use dictionary lookups to access geometry info
+    def __getitem__(self, in_tuple):
+        # Receive phi/psi/residue info, find the right dictionary, return the
+        # info.
+        residue, next_residue, phi, psi = in_tuple
+
+        vprint("residue = " + residue)
+
+        residue_type = get_residue_type(residue, next_residue)
+
+        # Priority order for methods. We'd rather fallback to Dunbrack's
+        # global average than use PGD conformation-dependent numbers. PGD
+        # numbers are only for parameters Dunbrack doesn't have yet.
+        for source_name in 'dunbrack', 'pgd', 'eh':
+            for method in 'dependent', 'independent':
+                vprint("Source = " + source_name)
+                vprint("Method = " + method)
+                # Decide which residue class to use
+                residue_class = None
+                try:
+                    source = self.sources[method][source_name]
+                except:
+                    # That source-method combination don't exist
+                    continue
+                residue_classes = source.keys()
+                residue_class = [i for i in residue_classes \
+                                 if tuple(residue_type) == i]
+                if not residue_class:
+                    if 'preproline' in residue_type:
+                        residue_class = ['preproline']
+                    if not residue_class:
+                        residue_class = [i for i in residue_classes \
+                                         if residue_type[0] == i]
+                        if not residue_class:
+                            residue_class = ['default']
+
+                residue_class = ''.join(residue_class)
+
+                res_db = source[residue_class]
+                # Do the lookup
+                fields = get_fields(res_db)
+
+
+                try:
+                    vprint("Database name = " + residue_class)
+                    phi_binsize, psi_binsize = get_binsize(res_db)
+                    vprint("binsizes:", phi_binsize, psi_binsize)
+                    # find closest key -- NOTE: this will find a key no matter
+                    # what, even if it's across the Ramachandran plot
+                    dist, r_phi, r_psi = min((math.sqrt((phi-i)**2+(psi-j)**2),i,j)  for i,j in res_db.keys())
+                    # If the distance is too far, we didn't find a key
+                    if method == 'dependent':
+                        if dist > math.sqrt((phi_binsize/2)**2+(psi_binsize/2)**2):
+                            vprint('Skipping', dist, r_phi, r_psi)
+                            continue                    
+                    # If the key doesn't exist, you get a weird error:
+                    # TypeError: unhashable type: 'dict'
+                    geometry = res_db[(r_phi, r_psi)]
+                    if getattr(geometry, 'Observations') < observation_min:
+                        raise KeyError
+                except KeyError:
+                    # Try the next library
+                    continue
+
+                if geometry:
+                    return fields, geometry
+
 
 def create_database(filename):
     """Create a dictionary matrix holding all of the bins
@@ -231,7 +356,7 @@ def create_all_databases(db_names):
     """Build up databases"""
     dbdict = {}
     for database in db_names:
-        vprint("Creating database " + database \
+        vprint("Creating database " + str(database) \
                    + " with file " + db_names[database])
         dbdict[database] = create_database(db_names[database])
     return dbdict
@@ -263,7 +388,7 @@ def get_fields(database):
     if optlist.verbose:
         database.keys().sort()
         for v in database.itervalues():
-            fields = '\t'.join(v.var_order)
+            fields = '\t'.join(v.local_var_order)
             return fields
 
 def get_database_name(residue, next_residue):
@@ -363,9 +488,9 @@ def get_geometry(dblist, residue, next_residue, phi, psi):
     except KeyError:
         library = default
         if dbname == 'proline':
-            library = 'default-pro'
+            library = 'default-proline'
         elif dbname == 'glycine':
-            library = 'default-gly'
+            library = 'default-glycine'
         dbname = library
         vprint("Defaulting to library value " + library)
 
@@ -478,18 +603,27 @@ def main(argv):
             phi = int(float(args[2]))
             psi = int(float(args[3]))
 
-    dbdict = create_all_databases(databases)
+    geom = geometry_getter()
+
+    for method in databases:
+        for source in databases[method]:
+            dblist = create_all_databases(databases[method][source])
+            geom.load(dblist=dblist,
+                      source=source,
+                      method=method)
 
     if optlist.add_empty or optlist.dump:
         if optlist.dump:
-            fields = get_fields(dbdict[optlist.dump])
+            fields = get_fields(dblist[optlist.dump])
             if fields:
                 print fields
-        dbdict = iterate_over_bins(dbdict)
+        dblist = iterate_over_bins(dblist)
 
     if not optlist.dump:
         vprint("phi, psi:", phi, psi)
-        fields, geometry = get_geometry(dbdict, residue, next_residue, phi, psi)
+        #fields, geometry = get_geometry(dblist, residue, next_residue, phi, psi)
+        fields, geometry = geom[residue, next_residue, phi, psi]
+
         if fields:
             print fields
         print geometry
