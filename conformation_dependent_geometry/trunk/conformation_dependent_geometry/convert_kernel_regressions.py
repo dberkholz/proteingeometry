@@ -28,12 +28,13 @@
 # dictionary to file using angles.py dump feature
 
 import bz2, sys
-from os.path import exists, getmtime
+from os.path import exists, getmtime, dirname
 # Do it this way so __init__.py runs and initializes angles.optlist. Otherwise
 # we get tracebacks.
 from conformation_dependent_geometry.angles import bin, databases, create_database, optlist
 
-results_file = 'data/KernRegr_CDL.txt'
+moduledir = dirname(__file__)
+results_file = moduledir + '/data/KernRegr_CDL.txt'
 
 class_map = {
     ('NonPGIV_nonxpro', 'B'): 'other',
@@ -188,7 +189,7 @@ def convert_dunbrack_database():
         # Used for printing the field names at the top of the file
         first_dependent = True
 
-        base = 'data/1.0-dunbrack-'
+        base = moduledir + '/data/1.0-dunbrack-'
         independent_file = base + class_map[(dunbrack_dict, 'I')] + '.txt.bz2'
         dependent_file = base + class_map[(dunbrack_dict, 'B')] + '.txt.bz2'
 

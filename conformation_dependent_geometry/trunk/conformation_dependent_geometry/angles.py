@@ -65,8 +65,6 @@ default = 'default'
 # Minimum number of observations required to return non-E&H geometry
 observation_min = 3
 
-# Map of all residue classes and the file names containing their libraries
-# The key names are the valid residue classes to pass in as arguments
 moduledir = os.path.dirname(__file__)
 
 # General design of using Dunbrack data: A dictionary of bins should first
@@ -82,6 +80,8 @@ databases = {
 'dependent': {},
 }
 
+# Map of all residue classes and the file names containing their libraries
+# The key names are the valid residue classes to pass in as arguments
 databases['independent']['dunbrack'] = {
     'default' : moduledir + '/data/1.0-dunbrack-default.txt.bz2',
     'glycine' : moduledir + '/data/1.0-dunbrack-default-glycine.txt.bz2',
@@ -357,7 +357,7 @@ def create_all_databases(db_names):
     dbdict = {}
     for database in db_names:
         vprint("Creating database " + str(database) \
-                   + " with file " + db_names[database])
+                   + " with file " + str(db_names[database]))
         dbdict[database] = create_database(db_names[database])
     return dbdict
 
@@ -469,10 +469,12 @@ def jackknife_geometry(dblist, residue, next_residue, phi, psi, param, value, ja
     except KeyError:
         pass
 
-def get_geometry(residue, next_residue, phi, psi):
+def get_geometry(residue, next_residue, phi, psi, dblist='default'):
     """Get the geometry info for a specific residue/phi/psi setting
 
     Return the field names and the geometry."""
+
+    # dblist is just staying for API stability
 
     global geom
     try:
