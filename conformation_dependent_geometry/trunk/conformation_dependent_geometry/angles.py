@@ -309,8 +309,11 @@ class geometry_getter(object):
                     phi_binsize, psi_binsize = get_binsize(res_db)
                     vprint("binsizes:", phi_binsize, psi_binsize)
                     # find closest key -- NOTE: this will find a key no matter
-                    # what, even if it's across the Ramachandran plot
-                    dist, r_phi, r_psi = min((math.sqrt((phi-i)**2+(psi-j)**2),i,j)  for i,j in res_db.keys())
+                    # what, even if it's across the Ramachandran plot. Adding
+                    # binsize/2 controls for the phi/psi values stated in the
+                    # files actually being the edges of bins rather than the
+                    # centers.
+                    dist, r_phi, r_psi = min((math.sqrt((phi-(i+phi_binsize/2))**2+(psi-(j+psi_binsize/2))**2),i,j)  for i,j in res_db.keys())
                     # If the distance is too far, we didn't find a key
                     if method == 'dependent':
                         if dist > math.sqrt((phi_binsize/2)**2+(psi_binsize/2)**2):
