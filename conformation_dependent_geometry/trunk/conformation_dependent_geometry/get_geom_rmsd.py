@@ -419,11 +419,15 @@ def get_geometry(struct, *geomtypes):
 
         # Make sure the adjacent residues really are sequential
         # Otherwise we can get weird angles
+        res_seq, icode = mmLib.Structure.fragment_id_split(r.fragment_id)
+        next_res_numstr = str(int(res_seq) + 1)
+        prev_res_numstr = str(int(res_seq) - 1)
+        # Allow for insertion codes, where e.g. next_res_numstr == res_seq
         if next_res:
-            if (int(next_res.fragment_id) - int(r.fragment_id) != 1):
+            if (int(next_res_numstr) - int(res_seq) not in (0,1)):
                 continue
         if prev_res:
-            if (int(prev_res.fragment_id) - int(r.fragment_id) != -1):
+            if (int(prev_res_numstr) - int(res_seq) not in (0,-1)):
                 continue
 
         if angle:
