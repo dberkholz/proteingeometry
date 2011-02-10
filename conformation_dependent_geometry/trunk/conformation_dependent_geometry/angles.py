@@ -65,6 +65,11 @@ default = 'default'
 # Minimum number of observations required to return non-E&H geometry
 observation_min = 3
 
+# Priority order for methods. We'd rather fallback to Dunbrack's global
+# average than use PGD conformation-dependent numbers. PGD numbers are only
+# available for parameters Dunbrack doesn't have yet.
+source_priority = ['dunbrack', 'pgd', 'eh']
+
 moduledir = os.path.dirname(__file__)
 
 # General design of using Dunbrack data: A dictionary of bins should first
@@ -213,7 +218,6 @@ def get_residue_type(residue, next_residue):
 class bin(object):
     """This class holds all the info about a bin. Bins cannot be instantiated
     without first filling in var_order. See create_database() for that code."""
-
     def __init__(self, words):
         """Fill in a bin, reading geometry info from words"""
         self.local_var_order = self.var_order
@@ -231,6 +235,9 @@ class bin(object):
             # Handle as a string
             except ValueError:
                 pass
+            except IndexError:
+                print words
+                print self.local_var_order
             setattr(self, slot, words[i])
 
     def __str__(self):
@@ -271,10 +278,7 @@ class geometry_getter(object):
 
         residue_type = get_residue_type(residue, next_residue)
 
-        # Priority order for methods. We'd rather fallback to Dunbrack's
-        # global average than use PGD conformation-dependent numbers. PGD
-        # numbers are only for parameters Dunbrack doesn't have yet.
-        for source_name in 'dunbrack', 'pgd', 'eh':
+        for source_name in source_priority:
             for method in 'dependent', 'independent':
                 vprint("Source = " + source_name)
                 vprint("Method = " + method)
@@ -303,7 +307,6 @@ class geometry_getter(object):
                 # Do the lookup
                 fields = get_fields(res_db)
 
-
                 try:
                     vprint("Database name = " + ''.join(residue_class))
                     phi_binsize, psi_binsize = get_binsize(res_db)
@@ -312,8 +315,15 @@ class geometry_getter(object):
                     # what, even if it's across the Ramachandran plot. Adding
                     # binsize/2 controls for the phi/psi values stated in the
                     # files actually being the edges of bins rather than the
-                    # centers.
-                    dist, r_phi, r_psi = min((math.sqrt((phi-(i+phi_binsize/2))**2+(psi-(j+psi_binsize/2))**2),i,j)  for i,j in res_db.keys())
+                    # centers. This returns the minimum for the first element
+                    # in the tuple.
+                    dist, r_phi, r_psi = min(
+                        (math.sqrt(
+                             (phi-(i+phi_binsize/2))**2
+                            +(psi-(j+psi_binsize/2))**2
+                            )
+                         ,i,j)
+                        for i,j in res_db.keys())
                     # If the distance is too far, we didn't find a key
                     if method == 'dependent':
                         if dist > math.sqrt((phi_binsize/2)**2+(psi_binsize/2)**2):
@@ -323,7 +333,9 @@ class geometry_getter(object):
                     # TypeError: unhashable type: 'dict'
                     geometry = res_db[(r_phi, r_psi)]
                     if getattr(geometry, 'Observations') < observation_min:
-                        raise KeyError
+                        # Test if we're using backbone-independent values
+                        if getattr(geometry, 'Observations')  != -1:
+                            raise KeyError
                 except KeyError:
                     # Try the next library
                     continue
@@ -337,6 +349,7 @@ def create_database(filename):
 
     Returns the dictionary matrix"""
     dbdict = {}
+    bin.var_order = []
     for line in bz2.BZ2File(filename, 'r'):
         # separate on space
         words = line.split()
