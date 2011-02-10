@@ -76,9 +76,7 @@ class geom(object):
 class protein_geometry_database(geom):
     def __init__(self, attr):
         geom.__init__(self, attr)
-        # Read in database files etc here
-        self.dbdict = angles.create_all_databases(
-                        angles.databases)
+        self.geometry_getter = angles.setup()
 
     def get(self, phi, psi, attr):
         # Get based on residue type, phi and psi
@@ -92,12 +90,11 @@ class protein_geometry_database(geom):
             phi = 0
             psi = 0
         # print 'residue = ', residue
-        fields, geometry = angles.get_geometry(
-                             self.dbdict, 
+        fields, geometry = self.geometry_getter[
                              self.res_name, 
                              self.next_res_name, 
                              phi, 
-                             psi)
+                             psi]
         #print geometry.__dict__
         value = getattr(geometry, pgdattr)
         obs = getattr(geometry, 'Observations')
