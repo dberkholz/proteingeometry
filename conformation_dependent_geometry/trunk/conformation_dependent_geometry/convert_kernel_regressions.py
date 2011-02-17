@@ -64,23 +64,23 @@ bin_map = {
     }
 
 geometry_map = {
-    'CNA': 'a1',
-    'NAB': 'a2',
-    'NAC': 'a3',
-    'BAC': 'a4',
-    'ACO': 'a5',
-    'ACN': 'a6',
-    'OCN': 'a7',
-    'CN':  'L1',
-    'NA':  'L2',
-    'AB':  'L3',
-    'AC':  'L4',
-    'CO':  'L5',
+    'CNA': 'C(-1)-N-CA',
+    'NAB': 'N-CA-CB',
+    'NAC': 'N-CA-C',
+    'BAC': 'CB-CA-C',
+    'ACO': 'CA-C-O',
+    'ACN': 'CA-C-N(+1)',
+    'OCN': 'O-C-N(+1)',
+    'CN':  'C(-1)-N',
+    'NA':  'N-CA',
+    'AB':  'CA-CB',
+    'AC':  'CA-C',
+    'CO':  'C-O',
     }
 
 type_map = {
-    'm': 'Avg',
-    's': 'Dev',
+    'm': 'Avg(i)',
+    's': 'Dev(i)',
     }
 
 
@@ -145,16 +145,18 @@ def translate_dunbrack_bin(dunbrack_bin):
         if not hasattr(dunbrack_bin, dunbrack_field):
             continue
         pgd_field = bin_map[bin_name]
+        value = getattr(dunbrack_bin, dunbrack_field)
         if pgd_field is 'Phi' or pgd_field is 'Psi':
             pgd_start_field = pgd_field + 'Start'
             pgd_stop_field = pgd_field + 'Stop'
+            value += 180
             # Since we use floor rounding, and Dunbrack's numbers are supplied
             # as point values rather than ranges for bins, pretend they are
             # 10-degree bins with range (value-5, value+5)
-            setattr(database_bin, pgd_start_field, getattr(dunbrack_bin, dunbrack_field) - 5)
-            setattr(database_bin, pgd_stop_field, getattr(dunbrack_bin, dunbrack_field) + 5)
+            setattr(database_bin, pgd_start_field, value - 5)
+            setattr(database_bin, pgd_stop_field, value + 5)
         else:
-            setattr(database_bin, pgd_field, getattr(dunbrack_bin, dunbrack_field))
+            setattr(database_bin, pgd_field, value)
 
     for geometry in geometry_map:
         for geom_type in type_map:
@@ -175,7 +177,7 @@ def convert_dunbrack_database():
     create_database(databases['independent']['eh']['default'])
 
     # set up which properties are in bins
-    unused_attribs = ['PhiAvg', 'PhiDev', 'PsiAvg', 'PsiDev', 'OmeAvg', 'OmeDev', 'ChiAvg', 'ChiDev', 'ZetaAvg', 'ZetaDev', 'HBondAvg', 'HBondDev']
+    unused_attribs = ['PhiAvg(i)', 'PhiDev(i)', 'PsiAvg(i)', 'PsiDev(i)', 'OmeAvg(i)', 'OmeDev(i)', 'ChiAvg(i)', 'ChiDev(i)', 'ZetaAvg(i)', 'ZetaDev(i)']
 
     for attrib in unused_attribs:
         bin.var_order.remove(attrib)

@@ -85,7 +85,9 @@ class protein_geometry_database(geom):
 
         pgdattr = angles.get_database_attribute_average_name(attr)
 
-        if phi > 180 or psi > 180:
+        phi += 180
+        psi += 180
+        if phi > 360 or psi > 360:
             residue = 'default'
             phi = 0
             psi = 0

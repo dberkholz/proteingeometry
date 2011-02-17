@@ -136,8 +136,7 @@ dihedral_atoms = (
     )
 
 # These names are keys into the expected_atom_i_seqs
-# Order: a1-a7, defined in Karplus 1996
-angle_names = [ 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7' ]
+angle_names = [ 'C(-1)-N-CA', 'N-CA-CB', 'N-CA-C', 'CB-CA-C', 'CA-C-O', 'CA-C-N(+1)', 'O-C-N(+1)' ]
 angle_atoms = (
     ((0, 'C' ), (1, 'N' ), (1, 'CA')),
     ((1, 'N' ), (1, 'CA'), (1, 'CB')),
@@ -151,22 +150,16 @@ angle_atoms = (
 def get_database_attribute_average_name(geometry_name):
     """Accepts a name of an angle or length and returns the name of
     that attribute's average in the database"""
-    if geometry_name[0] != 'a':
-        average_name = geometry_name.capitalize()
-    else:
-        average_name = geometry_name
-    average_name += 'Avg'
+    average_name = geometry_name.capitalize()
+    average_name += 'Avg(i)'
 
     return average_name
 
 def get_database_attribute_deviation_name(geometry_name):
     """Accepts a name of an angle or length and returns the name of
     that attribute's deviation in the database"""
-    if geometry_name[0] != 'a':
-        deviation_name = geometry_name.capitalize()
-    else:
-        deviation_name = geometry_name
-    deviation_name += 'Dev'
+    deviation_name = geometry_name.capitalize()
+    deviation_name += 'Dev(i)'
 
     return deviation_name
 
@@ -423,14 +416,9 @@ def get_database_name(residue, next_residue):
 
     return dbname
 
-def jackknife_geometry(dblist, residue, next_residue, phi, psi, param, value, jackknife_deviation=False):
-    dbname = get_database_name(residue, next_residue)
+def jackknife_geometry(geom_getter, residue, next_residue, phi, psi, param, value, jackknife_deviation=False):
     try:
-        vprint("Database name = " + dbname)
-        phi_binsize, psi_binsize = get_binsize(dblist[dbname])
-        vprint("binsizes:", phi_binsize, psi_binsize)
-
-        geometry = dblist[dbname][(phi-phi%phi_binsize, psi-psi%psi_binsize)]
+        geometry = geom_getter[residue, next_residue, phi, psi]
         old_obs = getattr(geometry, 'Observations')
         if old_obs < observation_min:
             raise KeyError
@@ -616,8 +604,8 @@ def main(argv):
             residue = args[0].upper()
             next_residue = args[1].upper()
             # int() can't convert from string and from float at the same time
-            phi = int(float(args[2]))
-            psi = int(float(args[3]))
+            phi = int(float(args[2]))+180
+            psi = int(float(args[3]))+180
 
     geom = setup()
 
