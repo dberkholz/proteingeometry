@@ -104,7 +104,7 @@ class protein_geometry_database(geom):
         # Our defaults don't include omega for some reason,
         # instead they return -1
         if attr == 'ome' and value == -1:
-            return 180
+            return 179.3
         else:
             return value
 
@@ -230,7 +230,7 @@ def main(argv):
         # print eh.__dict__
         if meas == 'ome':
             # print "Measurement is ome"
-            eh.set(meas, 180)
+            eh.set(meas, 179.3)
         eh.msd = 0
 
     if optlist.compare_cdecg:
