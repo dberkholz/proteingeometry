@@ -150,7 +150,10 @@ angle_atoms = (
 def get_database_attribute_average_name(geometry_name):
     """Accepts a name of an angle or length and returns the name of
     that attribute's average in the database"""
-    average_name = geometry_name.capitalize()
+    if geometry_name.count('-') == 0:
+        average_name = geometry_name.capitalize()
+    else:
+        average_name = geometry_name.upper()
     average_name += 'Avg(i)'
 
     return average_name
@@ -158,7 +161,10 @@ def get_database_attribute_average_name(geometry_name):
 def get_database_attribute_deviation_name(geometry_name):
     """Accepts a name of an angle or length and returns the name of
     that attribute's deviation in the database"""
-    deviation_name = geometry_name.capitalize()
+    if geometry_name.count('-') == 0:
+        deviation_name = geometry_name.capitalize()
+    else:
+        deviation_name = geometry_name.upper()
     deviation_name += 'Dev(i)'
 
     return deviation_name

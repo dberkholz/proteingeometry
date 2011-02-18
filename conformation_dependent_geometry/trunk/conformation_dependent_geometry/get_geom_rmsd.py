@@ -176,9 +176,9 @@ def main(argv):
     get_geometry(struct, meas)
 
     # To make validation easier
-    if meas.startswith('a'):
+    if meas.count('-') == 2:
         geomclass = 'angle'
-    elif meas.startswith('l'):
+    elif meas.count('-') == 1:
         geomclass = 'length'
     elif meas == 'ome' \
             or meas == 'phi' \
@@ -263,7 +263,7 @@ def main(argv):
                     except:
                         print 'Failed: pdb=%s res=%s meas=%s' \
                               % (cpdb, r.props['id'], meas)
-                        print type(c_residues[cpdb].props)
+                        print c_residues[cpdb].props
                         raise NoMeasurement
             except (NoEquivalentFragment, NoMeasurement), e:
                 print e
@@ -286,8 +286,8 @@ def main(argv):
                 cdecg.next_res_name = 'END'
 
         if optlist.compare_eh:
-            if meas == 'a3':
-                # print "Measurement is a3"
+            if meas == 'N-CA-C':
+                # print "Measurement is N-CA-C"
                 if r.res_name == 'GLY':
                     # print r2
                     eh.set(meas, 112.5)
@@ -407,9 +407,10 @@ def get_geometry(struct, *geomtypes):
     # calculate torsions besides phi and psi
     torsion=False
     for geomtype in geomtypes:
-        if geomtype.startswith('a'):
+        # Check the number of hyphens to decide how many atoms are involved
+        if geomtype.count('-') == 2:
             angle=True
-        elif geomtype.startswith('l'):
+        elif geomtype.count('-') == 1:
             length=True
         elif geomtype == 'ome' \
                 or geomtype == 'zeta':
@@ -503,24 +504,22 @@ def get_geometry(struct, *geomtypes):
                     }
         if angle:
             try:
-                r.props['a1'] = math.degrees(r.a1)
-                r.props['a2'] = math.degrees(r.a2)
-                r.props['a3'] = math.degrees(r.a3)
-                r.props['a4'] = math.degrees(r.a4)
-                r.props['a5'] = math.degrees(r.a5)
-                r.props['a6'] = math.degrees(r.a6)
-                r.props['a7'] = math.degrees(r.a7)
+                r.props['C(-1)-N-CA'] = math.degrees(r.a1)
+                r.props['N-CA-CB'] = math.degrees(r.a2)
+                r.props['N-CA-C'] = math.degrees(r.a3)
+                r.props['CB-CA-C'] = math.degrees(r.a4)
+                r.props['CA-C-O'] = math.degrees(r.a5)
+                r.props['CA-C-N(+1)'] = math.degrees(r.a6)
+                r.props['O-C-N(+1)'] = math.degrees(r.a7)
             # Not a number, so probably didn't get set.
             except (TypeError, AttributeError):
                 pass
         if length:
-            r.props['l1'] = r.l1
-            r.props['l2'] = r.l2
-            r.props['l3'] = r.l3
-            r.props['l4'] = r.l4
-            r.props['l5'] = r.l5
-            r.props['l6'] = r.l6
-            r.props['l7'] = r.l7
+            r.props['C(-1)-N'] = r.l1
+            r.props['N-CA'] = r.l2
+            r.props['CA-CB'] = r.l3
+            r.props['CA-C'] = r.l4
+            r.props['C-O'] = r.l5
         if torsion:
             r.props['ome'] = math.degrees(r.ome)
  
