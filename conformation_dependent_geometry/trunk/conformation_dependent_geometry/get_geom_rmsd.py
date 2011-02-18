@@ -298,14 +298,14 @@ def main(argv):
                     eh.set(meas, 111.2)
         if meas == 'phi' or meas == 'psi' or meas == 'ome':
             #print "phi/psi/ome"
-            if r.props[meas] > 180:
+            if abs(r.props[meas]) > 360:
                 continue
             if optlist.compare_pdbs:
                 # if _any_ residues in set are bad, skip comparing this
                 # residue altogether (XXX FIXME: is this a good idea?)
                 try:
                     for cpdb in c_residues.keys():
-                        if c_residues[cpdb].props[meas] > 180:
+                        if abs(c_residues[cpdb].props[meas]) > 360:
                             raise BadDihedral
                 except BadDihedral, e:
                     print e
@@ -349,6 +349,8 @@ def main(argv):
             eh.msd += eh.dev**2
         if optlist.compare_cdecg:
             cdecg_meas = cdecg.get(r.props['phi'], r.props['psi'], meas)
+            if cdecg_meas < -90:
+                cdecg_meas += 360
             cdecg.dev = r.props[meas] - cdecg_meas
             if not valid_deviation(geomclass, cdecg.dev):
                 continue
