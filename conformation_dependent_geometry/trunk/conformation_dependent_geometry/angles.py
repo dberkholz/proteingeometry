@@ -316,17 +316,20 @@ class geometry_getter(object):
                     # files actually being the edges of bins rather than the
                     # centers. This returns the minimum for the first element
                     # in the tuple.
-                    dist, r_phi, r_psi = min(
-                        (math.sqrt(
+                    dist_collection = [(math.sqrt(
                              (phi-(i+phi_binsize/2))**2
                             +(psi-(j+psi_binsize/2))**2
                             )
-                         ,i,j)
-                        for i,j in res_db.keys())
+                            ,i,j)
+                    for i,j in res_db.keys()]
+                    dist, r_phi, r_psi = min(dist_collection)
                     # If the distance is too far, we didn't find a key
                     if method == 'dependent':
                         if dist > math.sqrt((phi_binsize/2)**2+(psi_binsize/2)**2):
-                            vprint('Skipping', dist, r_phi, r_psi)
+                            vprint('Skipping', '%.2f' % dist, r_phi, r_psi)
+                            vprint('Top hits:')
+                            for dist, r_phi, r_psi in sorted(dist_collection)[0:5]:
+                                vprint('%.2f' % dist, r_phi, r_psi)
                             continue                    
                     # If the key doesn't exist, you get a weird error:
                     # TypeError: unhashable type: 'dict'
