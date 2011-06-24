@@ -68,8 +68,7 @@ observation_min = 3
 # Priority order for methods. We'd rather fallback to Dunbrack's global
 # average than use PGD conformation-dependent numbers. PGD numbers are only
 # available for parameters Dunbrack doesn't have yet.
-source_priority = ['pgd', 'eh']
-#source_priority = ['dunbrack', 'pgd', 'eh']
+source_priority = ['dunbrack', 'pgd', 'eh']
 
 moduledir = os.path.dirname(__file__)
 
