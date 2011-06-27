@@ -1,0 +1,36 @@
+<HTML>
+<HEAD><TITLE> cdl_shelxl </TITLE>
+</HEAD>
+
+<BODY>
+
+<table width="100%"><tr bgcolor="d85a1a"><td>
+<CENTER><H2> <i> cdl_shelxl </i> Service</H2></CENTER>
+<CENTER><H3> Produces <i>shelxl</i> Restraints based on the Conformation Dependent Library (V1.2)</H3></CENTER>
+</td></tr></table>
+
+<br>Select your PDB file and hit the upload button. <br><br>
+<form action='cgi-bin/cdl_shelxl_cgi.py' method='post' name='uploadForm' enctype='multipart/form-data'>
+<input name='PDBfile' type='file' size='50' title='Upload your PDB file'>
+<br><input type='submit' value='Upload and generate restraints'>
+</form>
+<p>
+This service creates the input required to restrain a protein model to the CDL using
+the <i>shelxl</i> refinment program.  It needs a structural model in PDB format to calculate
+the backbone conformational angles.  <i>shelxl</i> can only work with models that have a
+single "chain" and the name of that chain must be blank.  To avoid these problems your model needs to be processed
+by <i>shelxpro</i> before it is submitted to this service. 
+</p><p>
+The use of these restraints in refinement is described in <A href="http://pgd.science.oregonstate.edu/references/static/pdf/2011_tronrud-shelxl.pdf"><cite>Tronrud & Karplus, <i>acta Cryst D</i>, in press</cite><A>.
+</p><p>
+The Conformation Dependent Library is described in <A href="http://pgd.science.oregonstate.edu/references/static/pdf/2009_berkholz.pdf"><cite>Berkholz, <i>et al</i>, 2009, <i>Structure</i>, <b>17</b>, 1316-1325</cite></A>.
+</p>  
+
+<hr size=2 width="100%" align=center><span style='font-size:10.0pt'>
+This service brougth to you by the P. Andrew Karplus lab, Department of Biochemistry and Biophysics, Oregon State University. <br>
+Source code can be downloaded at <A href="http://sourceforge.new/projects/proteingeometry/">http://sourceforge.new/projects/proteingeometry/</A>. <br>
+If you encounter problems with this site, or have suggestions for improvement, please contact 
+<a href="mailto:tronrudd@science.oregonstate.edu?subject=CDL-shelxl%20Web%20Service">tronrudd@science.oregonstate.edu</a>. <br>
+Revised June 24, 2011
+</BODY>
+
