@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright © 2007-2008 Oregon State University
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +23,7 @@
 #     Donnie Berkholz <berkhold@science.oregonstate.edu>
 
 name='pgd-utils'
-version='0.4.2'
+version='0.5'
 
 import os
 from distutils.core import setup
@@ -39,10 +40,12 @@ setup(name=name,
       description='Package for accessing Protein Geometry Database info',
       author='Donnie Berkholz',
       author_email='berkhold@science.oregonstate.edu',
-      packages=['pgd'],
+      packages=['conformation_dependent_geometry'],
       scripts=['scripts/pgd-angles',
-               'pgd/get_pdb_rmsd_stats.sh'],
-      package_data={'pgd': ['data/*.txt'] },
+               'scripts/cdl-shelxl.py',
+               'scripts/convert_pdb_to_refmac_restraints.py',
+               'scripts/get_pdb_rmsd_stats.sh'],
+      package_data={'pgd': ['data/*.bz2'] },
       data_files=[('share/doc/' + name + '-' + version,
                    ['karplus-definitions.jpg',
                     'examples/pgd-lookup.py',
