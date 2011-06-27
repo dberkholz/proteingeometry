@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # 
 # Copyright © 2007-2008 Oregon State University
 # 
@@ -24,18 +25,19 @@
 #     Donnie Berkholz <berkhold@science.oregonstate.edu>
 
 import sys
-from pgd.angles import *
+from conformation_dependent_geometry import angles
 
 file='test.res'
 
 def main():
-	dbdict = create_all_databases(databases)
+	geom = angles.setup()
 	for line in open(file):
 		words = line.split()
 		residue = words[0]
-		phi = int(float(words[1]))
-		psi = int(float(words[2]))
-		fields, geometry = get_geometry(dbdict, residue, phi, psi)
+		next_residue = words[1]
+		phi = int(float(words[2]))
+		psi = int(float(words[3]))
+		fields, geometry = geom[residue, next_residue, phi, psi]
 		if fields:
 			print fields
 		print geometry
