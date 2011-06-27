@@ -7,7 +7,8 @@ from math import sqrt, cos
 from Bio.PDB import *
 import conformation_dependent_geometry.angles as angles
 
-from shelxl_EandH_sigma import EandH_main_chain, EandH_side_chain
+from conformation_dependent_geometry.shelxl_EandH_sigma \
+     import EandH_main_chain, EandH_side_chain
 
 DFIX_format = 'DFIX_%s %.3f %.3f %s %s'
 DANG_format = 'DANG_%s %.3f %.3f %s %s'
@@ -87,34 +88,34 @@ def print_CDL_restraints(Residue, atoms, back_link, forward_link):
     psi = 180/3.141592653*calc_dihedral(atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector(), atoms['N+'].get_vector())
     print "REM  ", Residue['i'].get_resname(), Residue['i+1'].get_resname(), 'Phi = %.0f'%(phi), 'Psi = %.0f'%(psi)
 
-    fields, geometry = angles.get_geometry(Residue['i'].get_resname(), Residue['i+1'].get_resname(), phi, psi)
+    fields, geometry = geom[Residue['i'].get_resname(), Residue['i+1'].get_resname(), phi, psi]
     if back_link:
-        print DFIX_format%(residue_name, geometry.L1Avg, geometry.L1Dev, 'C_-', 'N')
-        print DANG_format%(residue_name, angle_to_d13(geometry.a1Avg,                 geometry.L1Avg, geometry.L2Avg), \
-                                         sigma_of_d13(geometry.a1Avg, geometry.a1Dev, geometry.L1Avg, geometry.L2Avg), 'C_-', 'CA')
+        print DFIX_format%(residue_name, getattr(geometry, 'C(-1)-NAvg(i)'), getattr(geometry, 'C(-1)-NDev(i)'), 'C_-', 'N')
+        print DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'C(-1)-N-CAAvg(i)'),                 getattr(geometry, 'C(-1)-NAvg(i)'), getattr(geometry, 'N-CAAvg(i)')), \
+                                         sigma_of_d13(getattr(geometry, 'C(-1)-N-CAAvg(i)'), getattr(geometry, 'C(-1)-N-CADev(i)'), getattr(geometry, 'C(-1)-NAvg(i)'), getattr(geometry, 'N-CAAvg(i)')), 'C_-', 'CA')
 
-    print DFIX_format%(residue_name, geometry.L2Avg, geometry.L2Dev, 'N', 'CA')
-    print DFIX_format%(residue_name, geometry.L4Avg, geometry.L4Dev, 'CA', 'C')
-    print DFIX_format%(residue_name, geometry.L5Avg, geometry.L5Dev, 'C', 'O')
+    print DFIX_format%(residue_name, getattr(geometry, 'N-CAAvg(i)'), getattr(geometry, 'N-CADev(i)'), 'N', 'CA')
+    print DFIX_format%(residue_name, getattr(geometry, 'CA-CAvg(i)'), getattr(geometry, 'CA-CDev(i)'), 'CA', 'C')
+    print DFIX_format%(residue_name, getattr(geometry, 'C-OAvg(i)'), getattr(geometry, 'C-ODev(i)'), 'C', 'O')
 
-    print DANG_format%(residue_name, angle_to_d13(geometry.a3Avg,                 geometry.L2Avg, geometry.L4Avg), \
-                                     sigma_of_d13(geometry.a3Avg, geometry.a3Dev, geometry.L2Avg, geometry.L4Avg), 'N', 'C')
-    print DANG_format%(residue_name, angle_to_d13(geometry.a5Avg,                 geometry.L4Avg, geometry.L5Avg), \
-                                     sigma_of_d13(geometry.a5Avg, geometry.a5Dev, geometry.L4Avg, geometry.L5Avg), 'CA', 'O')
+    print DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'N-CA-CAvg(i)'),                 getattr(geometry, 'N-CAAvg(i)'), getattr(geometry, 'CA-CAvg(i)')), \
+                                     sigma_of_d13(getattr(geometry, 'N-CA-CAvg(i)'), getattr(geometry, 'N-CA-CDev(i)'), getattr(geometry, 'N-CAAvg(i)'), getattr(geometry, 'CA-CAvg(i)')), 'N', 'C')
+    print DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'CA-C-OAvg(i)'),                 getattr(geometry, 'CA-CAvg(i)'), getattr(geometry, 'C-OAvg(i)')), \
+                                     sigma_of_d13(getattr(geometry, 'CA-C-OAvg(i)'), getattr(geometry, 'CA-C-ODev(i)'), getattr(geometry, 'CA-CAvg(i)'), getattr(geometry, 'C-OAvg(i)')), 'CA', 'O')
     print 'CHIV_{0} C'.format(residue_name)
     if Residue['i'].get_resname() != 'GLY': 
-        print DFIX_format%(residue_name, geometry.L3Avg, geometry.L3Dev, 'CA', 'CB')
-        print DANG_format%(residue_name, angle_to_d13(geometry.a2Avg,                 geometry.L2Avg, geometry.L3Avg), \
-                                         sigma_of_d13(geometry.a2Avg, geometry.a2Dev, geometry.L2Avg, geometry.L3Avg), 'N', 'CB')
-        print DANG_format%(residue_name, angle_to_d13(geometry.a4Avg,                 geometry.L4Avg, geometry.L3Avg), \
-                                         sigma_of_d13(geometry.a4Avg, geometry.a4Dev, geometry.L4Avg, geometry.L3Avg), 'C', 'CB')
-        print CHIV_format%(residue_name, geometry.L2Avg*geometry.L3Avg*geometry.L4Avg* \
-                    sqrt(1.0 - cos(3.141592653/180*geometry.a2Avg)**2 - \
-                               cos(3.141592653/180*geometry.a3Avg)**2 - \
-                               cos(3.141592653/180*geometry.a4Avg)**2 + 
-                           2.0*cos(3.141592653/180*geometry.a2Avg)* \
-                               cos(3.141592653/180*geometry.a3Avg)* \
-                               cos(3.141592653/180*geometry.a4Avg)), 'CA')
+        print DFIX_format%(residue_name, getattr(geometry, 'CA-CBAvg(i)'), getattr(geometry, 'CA-CBDev(i)'), 'CA', 'CB')
+        print DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'N-CA-CBAvg(i)'),                 getattr(geometry, 'N-CAAvg(i)'), getattr(geometry, 'CA-CBAvg(i)')), \
+                                         sigma_of_d13(getattr(geometry, 'N-CA-CBAvg(i)'), getattr(geometry, 'N-CA-CBDev(i)'), getattr(geometry, 'N-CAAvg(i)'), getattr(geometry, 'CA-CBAvg(i)')), 'N', 'CB')
+        print DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'CB-CA-CAvg(i)'),                 getattr(geometry, 'CA-CAvg(i)'), getattr(geometry, 'CA-CBAvg(i)')), \
+                                         sigma_of_d13(getattr(geometry, 'CB-CA-CAvg(i)'), getattr(geometry, 'CB-CA-CDev(i)'), getattr(geometry, 'CA-CAvg(i)'), getattr(geometry, 'CA-CBAvg(i)')), 'C', 'CB')
+        print CHIV_format%(residue_name, getattr(geometry, 'N-CAAvg(i)')*getattr(geometry, 'CA-CBAvg(i)')*getattr(geometry, 'CA-CAvg(i)')* \
+                    sqrt(1.0 - cos(3.141592653/180*getattr(geometry, 'N-CA-CBAvg(i)'))**2 - \
+                               cos(3.141592653/180*getattr(geometry, 'N-CA-CAvg(i)'))**2 - \
+                               cos(3.141592653/180*getattr(geometry, 'CB-CA-CAvg(i)'))**2 + 
+                           2.0*cos(3.141592653/180*getattr(geometry, 'N-CA-CBAvg(i)'))* \
+                               cos(3.141592653/180*getattr(geometry, 'N-CA-CAvg(i)'))* \
+                               cos(3.141592653/180*getattr(geometry, 'CB-CA-CAvg(i)'))), 'CA')
 
     if Residue['i'] not in ('GLY', 'ALA'):
         for restraint in EandH_side_chain[Residue['i'].get_resname()]:
@@ -127,10 +128,10 @@ def print_CDL_restraints(Residue, atoms, back_link, forward_link):
             CNlen = 1.341
         else: 
             CNlen = 1.329
-        print DANG_format%(residue_name, angle_to_d13(geometry.a6Avg,                 geometry.L4Avg, CNlen), \
-                                         sigma_of_d13(geometry.a6Avg, geometry.a6Dev, geometry.L4Avg, CNlen), 'CA', 'N_+')
-        print DANG_format%(residue_name, angle_to_d13(geometry.a7Avg,                 geometry.L5Avg, CNlen), \
-                                         sigma_of_d13(geometry.a7Avg, geometry.a7Dev, geometry.L5Avg, CNlen), 'O', 'N_+')
+        print DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'CA-C-N(+1)Avg(i)'),                 getattr(geometry, 'CA-CAvg(i)'), CNlen), \
+                                         sigma_of_d13(getattr(geometry, 'CA-C-N(+1)Avg(i)'), getattr(geometry, 'CA-C-N(+1)Dev(i)'), getattr(geometry, 'CA-CAvg(i)'), CNlen), 'CA', 'N_+')
+        print DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'O-C-N(+1)Avg(i)'),                 getattr(geometry, 'C-OAvg(i)'), CNlen), \
+                                         sigma_of_d13(getattr(geometry, 'O-C-N(+1)Avg(i)'), getattr(geometry, 'O-C-N(+1)Dev(i)'), getattr(geometry, 'C-OAvg(i)'), CNlen), 'O', 'N_+')
         print 'FLAT_{0} 0.5 O CA N_+ C CA_+'.format(residue_name)
 
 def main():
@@ -155,6 +156,9 @@ def main():
         print 'You do realize that shelxl cannot handle models with more than one chain!'
         sys.exit()
     print 'REM Working with chain ', s[0].id, '/', chain[0].id
+
+    global geom
+    geom = angles.setup()
 
     Residue = {}
     #Residue['i+1'] = None
