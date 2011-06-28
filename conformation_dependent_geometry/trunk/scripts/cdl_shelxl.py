@@ -88,8 +88,8 @@ def CDL_restraints(Residue, atoms, back_link, forward_link):
     chain continues in those directions. """
     restraint_list=[]
     residue_name=Residue['i'].get_id()[1]
-    phi = 180/3.141592653*calc_dihedral(atoms['C-'].get_vector(), atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector())
-    psi = 180/3.141592653*calc_dihedral(atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector(), atoms['N+'].get_vector())
+    phi = 180/3.141592653*calc_dihedral(atoms['C-'].get_vector(), atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector()) + 180
+    psi = 180/3.141592653*calc_dihedral(atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector(), atoms['N+'].get_vector()) + 180
     restraint_list.append("REM  "+Residue['i'].get_resname()+" "+Residue['i+1'].get_resname()+' Phi = %.0f'%(phi)+' Psi = %.0f'%(psi))
     fields, geometry = geom[Residue['i'].get_resname(), Residue['i+1'].get_resname(), phi, psi]
     if back_link:
