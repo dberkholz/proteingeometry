@@ -2,7 +2,7 @@
 
 import sys
 import optparse
-from math import sqrt, cos
+from math import sqrt, cos, radians, degrees
 
 from Bio.PDB import *
 import conformation_dependent_geometry.angles as angles
@@ -31,13 +31,13 @@ def calc_distance(atom1, atom2):
 def angle_to_d13(angle, d12, d23):
     """ Given two bond lengths and the angle between them, what is the 
     distance between the end-points? """
-    return sqrt(d12**2 + d23**2 - 2.0*d12*d23*cos(3.141592653/180*angle))
+    return sqrt(d12**2 + d23**2 - 2.0*d12*d23*cos(radians(angle)))
 
 def sigma_of_d13(angle, sigma_angle, d12, d23):
     """ Assuming all uncertainty is in the value of the angle, what is the uncertainty of the 1-3 distance? """
     d13 = angle_to_d13(angle, d12, d23)
     try:
-        sigma_d13 = (1.0/2.0)*(3.141592653/180.0)*sigma_angle/d13*sqrt(-(d12-d13-d23)*(d12+d13-d23)*(d12-d13+d23)*(d12+d13+d23))
+        sigma_d13 = (1.0/2.0)*radians(sigma_angle)/d13*sqrt(-(d12-d13-d23)*(d12+d13-d23)*(d12-d13+d23)*(d12+d13+d23))
     except ValueError:
         print 'We came up with a negative number in the square root in sigma_of_d13!'
         print angle, sigma_angle, d12, d23, d13
@@ -88,9 +88,9 @@ def CDL_restraints(Residue, atoms, back_link, forward_link):
     chain continues in those directions. """
     restraint_list=[]
     residue_name=Residue['i'].get_id()[1]
-    phi = 180/3.141592653*calc_dihedral(atoms['C-'].get_vector(), atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector()) + 180
-    psi = 180/3.141592653*calc_dihedral(atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector(), atoms['N+'].get_vector()) + 180
-    restraint_list.append("REM  "+Residue['i'].get_resname()+" "+Residue['i+1'].get_resname()+' Phi = %.0f'%(phi)+' Psi = %.0f'%(psi))
+    phi = degrees(calc_dihedral(atoms['C-'].get_vector(), atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector())) + 180
+    psi = degrees(calc_dihedral(atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector(), atoms['N+'].get_vector())) + 180
+    restraint_list.append("REM  "+Residue['i'].get_resname()+" "+Residue['i+1'].get_resname()+' Phi = %.0f'%(phi-180)+' Psi = %.0f'%(psi-180))
     fields, geometry = geom[Residue['i'].get_resname(), Residue['i+1'].get_resname(), phi, psi]
     if back_link:
         restraint_list.append(DFIX_format%(residue_name, getattr(geometry, 'C(-1)-NAvg(i)'), getattr(geometry, 'C(-1)-NDev(i)'), 'C_-', 'N'))
@@ -113,12 +113,12 @@ def CDL_restraints(Residue, atoms, back_link, forward_link):
         restraint_list.append(DANG_format%(residue_name, angle_to_d13(getattr(geometry, 'CB-CA-CAvg(i)'),                 getattr(geometry, 'CA-CAvg(i)'), getattr(geometry, 'CA-CBAvg(i)')), \
                                          sigma_of_d13(getattr(geometry, 'CB-CA-CAvg(i)'), getattr(geometry, 'CB-CA-CDev(i)'), getattr(geometry, 'CA-CAvg(i)'), getattr(geometry, 'CA-CBAvg(i)')), 'C', 'CB'))
         restraint_list.append(CHIV_format%(residue_name, getattr(geometry, 'N-CAAvg(i)')*getattr(geometry, 'CA-CBAvg(i)')*getattr(geometry, 'CA-CAvg(i)')* \
-                    sqrt(1.0 - cos(3.141592653/180*getattr(geometry, 'N-CA-CBAvg(i)'))**2 - \
-                               cos(3.141592653/180*getattr(geometry, 'N-CA-CAvg(i)'))**2 - \
-                               cos(3.141592653/180*getattr(geometry, 'CB-CA-CAvg(i)'))**2 + 
-                           2.0*cos(3.141592653/180*getattr(geometry, 'N-CA-CBAvg(i)'))* \
-                               cos(3.141592653/180*getattr(geometry, 'N-CA-CAvg(i)'))* \
-                               cos(3.141592653/180*getattr(geometry, 'CB-CA-CAvg(i)'))), 'CA'))
+                    sqrt(1.0 - cos(radians(getattr(geometry, 'N-CA-CBAvg(i)')))**2 - \
+                               cos(radians(getattr(geometry, 'N-CA-CAvg(i)')))**2 - \
+                               cos(radians(getattr(geometry, 'CB-CA-CAvg(i)')))**2 + 
+                           2.0*cos(radians(getattr(geometry, 'N-CA-CBAvg(i)')))* \
+                               cos(radians(getattr(geometry, 'N-CA-CAvg(i)')))* \
+                               cos(radians(getattr(geometry, 'CB-CA-CAvg(i)')))), 'CA'))
 
     if Residue['i'] not in ('GLY', 'ALA'):
         for restraint in EandH_side_chain[Residue['i'].get_resname()]:
