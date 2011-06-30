@@ -88,9 +88,17 @@ def CDL_restraints(Residue, atoms, back_link, forward_link):
     chain continues in those directions. """
     restraint_list=[]
     residue_name=Residue['i'].get_id()[1]
-    phi = degrees(calc_dihedral(atoms['C-'].get_vector(), atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector())) + 180
-    psi = degrees(calc_dihedral(atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector(), atoms['N+'].get_vector())) + 180
-    restraint_list.append("REM  "+Residue['i'].get_resname()+" "+Residue['i+1'].get_resname()+' Phi = %.0f'%(phi-180)+' Psi = %.0f'%(psi-180))
+    phi_orig = degrees(calc_dihedral(atoms['C-'].get_vector(), atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector()))
+    psi_orig = degrees(calc_dihedral(atoms['N'].get_vector(), atoms['CA'].get_vector(), atoms['C'].get_vector(), atoms['N+'].get_vector()))
+    if phi_orig < 0:
+        phi = phi_orig + 360
+    else:
+        phi = phi_orig
+    if psi_orig < 0:
+        psi = psi_orig + 360
+    else:
+        psi = psi_orig
+    restraint_list.append("REM  "+Residue['i'].get_resname()+" "+Residue['i+1'].get_resname()+' Phi = %.0f'%(phi_orig)+' Psi = %.0f'%(psi_orig))
     fields, geometry = geom[Residue['i'].get_resname(), Residue['i+1'].get_resname(), phi, psi]
     if back_link:
         restraint_list.append(DFIX_format%(residue_name, getattr(geometry, 'C(-1)-NAvg(i)'), getattr(geometry, 'C(-1)-NDev(i)'), 'C_-', 'N'))

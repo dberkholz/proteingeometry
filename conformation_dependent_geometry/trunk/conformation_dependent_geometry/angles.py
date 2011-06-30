@@ -613,8 +613,12 @@ def main(argv):
             residue = args[0].upper()
             next_residue = args[1].upper()
             # int() can't convert from string and from float at the same time
-            phi = int(float(args[2]))+180
-            psi = int(float(args[3]))+180
+            phi = int(float(args[2]))
+            if phi < 0:
+                phi += 360
+            psi = int(float(args[3]))
+            if psi < 0:
+                psi += 360
 
     geom = setup()
 

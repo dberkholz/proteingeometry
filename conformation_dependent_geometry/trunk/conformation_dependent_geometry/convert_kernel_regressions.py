@@ -149,7 +149,8 @@ def translate_dunbrack_bin(dunbrack_bin):
         if pgd_field is 'Phi' or pgd_field is 'Psi':
             pgd_start_field = pgd_field + 'Start'
             pgd_stop_field = pgd_field + 'Stop'
-            value += 180
+            if value < 0:
+                value += 360
             # Since we use floor rounding, and Dunbrack's numbers are supplied
             # as point values rather than ranges for bins, pretend they are
             # 10-degree bins with range (value-5, value+5)
