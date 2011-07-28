@@ -78,10 +78,15 @@ class protein_geometry_database(geom):
         geom.__init__(self, attr)
         self.geometry_getter = angles.setup()
 
-    def get(self, phi, psi, attr):
+    def get(self, residue, attr):
         # Get based on residue type, phi and psi
         #print phi, psi
         #print type(attr)
+        phi = residue.props['phi']
+        psi = residue.props['psi']
+
+        if optlist.omega_test:
+            return self.get_omega_test(residue)
 
         pgdattr = angles.get_database_attribute_average_name(attr)
 
@@ -107,6 +112,84 @@ class protein_geometry_database(geom):
             return 179.3
         else:
             return value
+
+    def get_omega_test(self, residue):
+        phi = residue.props['phi']
+        psi = residue.props['psi']
+
+        next_res = residue.get_offset_residue(1)
+        # Make sure the adjacent residues really are sequential
+        # Otherwise we can get weird angles
+        res_seq, icode = mmLib.Structure.fragment_id_split(residue.fragment_id)
+        next_res_numstr = str(int(res_seq) + 1)
+        # Allow for insertion codes, where e.g. next_res_numstr == res_seq
+        if next_res:
+            if (int(next_res_numstr) - int(res_seq) not in (0,1)):
+                # Chain break
+                return 179.3
+
+        res_seq, icode = mmLib.Structure.fragment_id_split(residue.fragment_id)
+        self.next_res_numstr = str(int(res_seq) + 1)
+        r_dict = residue.get_chain().fragment_dict
+        try:
+            self.next_res_name = r_dict[self.next_res_numstr]
+        except:
+            self.next_res_name = 'END'
+        # C-terminus
+        if self.next_res_name == 'END':
+            return 179.3
+
+        if self.res_name in ['ILE', 'VAL']:
+            omega_class = 'IleVal'
+        elif self.res_name == 'GLY':
+            omega_class = 'IleVal'
+        elif self.res_name == 'PRO':
+            omega_class = 'Pro'
+        else:
+            omega_class = 'NonPGIV'
+
+        if self.next_res_name == 'PRO':
+            omega_class += '_xpro'
+        else:
+            omega_class += '_nonxpro'
+
+        omega_file = '/data/research/manuscript-omega/KarplusJul15_2011_OmegaAfterAndBeforeInAdditToPrevBetween/ready/ascii/'
+        if optlist.omega_type == 'after':
+            omega_file += 'KernRegr_OmegaAfterAsPhi0Psi0_v1.2_Jul15-2011.txt'
+            omega_phi = phi
+            omega_psi = psi
+        elif optlist.omega_type == 'before':
+            omega_file += 'KernRegr_OmegaBeforeAsPhi0Psi0_v1.2_Jul15-2011.txt'
+            omega_phi = next_res.calc_torsion_phi()
+            omega_psi = next_res.calc_torsion_psi()
+        elif optlist.omega_type == 'between':
+            omega_file += 'KernRegr_OmegaBetweenAsPhi1Psi0_v1.2_Jul15-2011.txt'
+            omega_phi = next_res.calc_torsion_phi()
+            omega_psi = psi
+
+        geom_omega_test = load_omega_test(omega_file)
+
+        if omega_phi > 360:
+            return 179.3
+        if omega_psi > 360:
+            return 179.3
+        if not omega_phi:
+            return 179.3
+        if not omega_psi:
+            return 179.3
+
+        #from pprint import pprint
+        #pprint(geom_omega_test)
+        omega_phi = round_base(omega_phi,10)
+        if omega_phi == 180:
+            omega_phi = -180
+        omega_psi = round_base(omega_psi,10)
+        if omega_psi == 180:
+            omega_psi = -180
+        omega = geom_omega_test[(omega_class, omega_phi, omega_psi)]
+
+        return omega
+
 
 class BaseException(Exception):
     def __str__(self):
@@ -138,6 +221,33 @@ class pdb_container(object):
         self.model = model
     def __str__(self):
         return '%s:%s' % (self.name, self.model)
+
+def round_base(x, base):
+    return int(base * round(float(x)/base))
+
+def load_omega_test(omega_file):
+    global omega_dict
+
+    try:
+        if omega_dict:
+            return omega_dict
+    except:
+        pass
+
+    omega_dict = {}
+
+    for line in open(omega_file):
+        if line[0] in ['#','@']:
+            continue
+        flipped = False
+        words = line.split()
+        omega_class = words[0]
+        phi = int(words[1])
+        psi = int(words[2])
+        average = float(words[5])
+        omega_dict[(omega_class, phi, psi)] = average
+
+    return omega_dict
 
 def valid_deviation(geomclass, deviation):
     """If a deviation is too large to be reasonable, ignore it"""
@@ -348,7 +458,7 @@ def main(argv):
                 continue
             eh.msd += eh.dev**2
         if optlist.compare_cdecg:
-            cdecg_meas = cdecg.get(r.props['phi'], r.props['psi'], meas)
+            cdecg_meas = cdecg.get(r, meas)
             if cdecg_meas < -90:
                 cdecg_meas += 360
             cdecg.dev = r.props[meas] - cdecg_meas
@@ -538,6 +648,7 @@ def optparse_setup():
         compare_cdecg=False,
         compare_pdbs=[],
         multiple_models=False,
+        omega_type='after',
         )
     parser.add_option( \
         '-v', '--verbose', \
@@ -565,6 +676,16 @@ def optparse_setup():
             action='store_true', \
             dest='multiple_models', \
             help='Compare multiple models within a single PDB instead of just using the default model; defaults to %default')
+    parser.add_option( \
+        '-o', '--omega-test', \
+            action='store_true', \
+            dest='omega_test', \
+            help='(DEVELOPERS ONLY) Use testing datasets for omega; defaults to %default')
+    parser.add_option( \
+        '-O', '--omega-type', \
+            action='store', \
+            dest='omega_type', \
+            help='(DEVELOPERS ONLY) Determines where omega is relative to phi/psi [after, between, before]; defaults to %default')
 
     return parser
 
