@@ -490,19 +490,19 @@ def get_geometry(struct, *geomtypes):
                 r.l6 = 0
 
         if not r.phi:
-            r.phi = math.radians(999)
+            r.phi = 999
         if not r.psi:
-            r.psi = math.radians(999)
+            r.psi = 999
         if torsion:
             if not r.ome:
-                r.ome = math.radians(999)
+                r.ome = 999
 
         r.props = {
             'name': r.res_name,
             'id': r.fragment_id,
             'chain': r.chain_id,
-            'phi': math.degrees(r.phi),
-            'psi': math.degrees(r.psi),
+            'phi': r.phi,
+            'psi': r.psi,
                     }
         if angle:
             try:
@@ -523,7 +523,7 @@ def get_geometry(struct, *geomtypes):
             r.props['CA-C'] = r.l4
             r.props['C-O'] = r.l5
         if torsion:
-            r.props['ome'] = math.degrees(r.ome)
+            r.props['ome'] = r.ome
  
 def optparse_setup():
     import optparse
