@@ -132,7 +132,7 @@ class protein_geometry_database(geom):
         self.next_res_numstr = str(int(res_seq) + 1)
         r_dict = residue.get_chain().fragment_dict
         try:
-            self.next_res_name = r_dict[self.next_res_numstr]
+            self.next_res_name = r_dict[self.next_res_numstr].res_name
         except:
             self.next_res_name = 'END'
         # C-terminus
@@ -140,18 +140,21 @@ class protein_geometry_database(geom):
             return 179.3
 
         if self.res_name in ['ILE', 'VAL']:
-            omega_class = 'IleVal'
+            self.omega_class = 'IleVal'
         elif self.res_name == 'GLY':
-            omega_class = 'IleVal'
+            self.omega_class = 'Gly'
         elif self.res_name == 'PRO':
-            omega_class = 'Pro'
+            self.omega_class = 'Pro'
         else:
-            omega_class = 'NonPGIV'
+            self.omega_class = 'NonPGIV'
 
         if self.next_res_name == 'PRO':
-            omega_class += '_xpro'
+            self.omega_class += '_xpro'
         else:
-            omega_class += '_nonxpro'
+            self.omega_class += '_nonxpro'
+
+        # If no classes are desired:
+        #self.omega_class = 'All'
 
         omega_file = '/data/research/manuscript-omega/KarplusJul15_2011_OmegaAfterAndBeforeInAdditToPrevBetween/ready/ascii/'
         if optlist.omega_type == 'after':
@@ -186,7 +189,7 @@ class protein_geometry_database(geom):
         omega_psi = round_base(omega_psi,10)
         if omega_psi == 180:
             omega_psi = -180
-        omega = geom_omega_test[(omega_class, omega_phi, omega_psi)]
+        omega = geom_omega_test[(self.omega_class, omega_phi, omega_psi)]
 
         return omega
 
@@ -496,7 +499,11 @@ def main(argv):
                 print '%+.2f %.2f' % (eh.dev, eh.msd),
             if optlist.compare_cdecg:
                 print '%+.2f %.2f' % (cdecg.dev, cdecg.msd),
-            print '%d' % N
+            print '%d' % N,
+            if optlist.omega_test:
+                print cdecg.omega_class
+            else:
+                print
     print
     print 'Using %d residues' % N
     if optlist.compare_pdbs:
