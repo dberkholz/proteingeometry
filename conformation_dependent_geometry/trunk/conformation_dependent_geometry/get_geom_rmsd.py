@@ -78,6 +78,19 @@ class protein_geometry_database(geom):
         geom.__init__(self, attr)
         self.geometry_getter = angles.setup()
 
+        if optlist.omega_test:
+            self.geom_omega_test = {}
+            for omega_type in ['after', 'before', 'between']:
+                omega_file = '/data/research/manuscript-omega/KarplusAug12_2011_OmegaAfterBeforeBetweenLibs_FigsStatsForBetweenOnly/ready/ascii/'
+                if optlist.omega_type == 'after':
+                    omega_file += 'KernRegr_OmegaAfterAsPhi0Psi0_v1.3_Aug12-2011.txt'
+                elif optlist.omega_type == 'before':
+                    omega_file += 'KernRegr_OmegaBeforeAsPhi0Psi0_v1.3_Aug12-2011.txt'
+                elif optlist.omega_type == 'between':
+                    omega_file += 'KernRegr_OmegaBetweenAsPhi1Psi0_v1.3_Aug12-2011.txt'
+
+                self.geom_omega_test[omega_type] = load_omega_test(omega_file)
+
     def get(self, residue, attr):
         # Get based on residue type, phi and psi
         #print phi, psi
@@ -126,7 +139,7 @@ class protein_geometry_database(geom):
         if next_res:
             if (int(next_res_numstr) - int(res_seq) not in (0,1)):
                 # Chain break
-                return 179.3
+                return 179.3, 'independent'
 
         res_seq, icode = mmLib.Structure.fragment_id_split(residue.fragment_id)
         self.next_res_numstr = str(int(res_seq) + 1)
@@ -137,7 +150,7 @@ class protein_geometry_database(geom):
             self.next_res_name = 'END'
         # C-terminus
         if self.next_res_name == 'END':
-            return 179.3
+            return 179.3, 'independent'
 
         if self.res_name in ['ILE', 'VAL']:
             self.omega_class = 'IleVal'
@@ -153,36 +166,28 @@ class protein_geometry_database(geom):
         else:
             self.omega_class += '_nonxpro'
 
-        # If no classes are desired:
+        # For testing no-class vs classes
+        self.omega_class_orig = self.omega_class
         #self.omega_class = 'All'
 
-        # For testing no-class vs classes
-        #omega_class = 'All'
-
-        omega_file = '/data/research/manuscript-omega/KarplusJul15_2011_OmegaAfterAndBeforeInAdditToPrevBetween/ready/ascii/'
         if optlist.omega_type == 'after':
-            omega_file += 'KernRegr_OmegaAfterAsPhi0Psi0_v1.2_Jul15-2011.txt'
             omega_phi = phi
             omega_psi = psi
         elif optlist.omega_type == 'before':
-            omega_file += 'KernRegr_OmegaBeforeAsPhi0Psi0_v1.2_Jul15-2011.txt'
             omega_phi = next_res.calc_torsion_phi()
             omega_psi = next_res.calc_torsion_psi()
         elif optlist.omega_type == 'between':
-            omega_file += 'KernRegr_OmegaBetweenAsPhi1Psi0_v1.2_Jul15-2011.txt'
             omega_phi = next_res.calc_torsion_phi()
             omega_psi = psi
 
-        geom_omega_test = load_omega_test(omega_file)
-
         if omega_phi > 360:
-            return 179.3
+            return 179.3, 'independent'
         if omega_psi > 360:
-            return 179.3
+            return 179.3, 'independent'
         if not omega_phi:
-            return 179.3
+            return 179.3, 'independent'
         if not omega_psi:
-            return 179.3
+            return 179.3, 'independent'
 
         #from pprint import pprint
         #pprint(geom_omega_test)
@@ -192,7 +197,7 @@ class protein_geometry_database(geom):
         omega_psi = round_base(omega_psi,10)
         if omega_psi == 180:
             omega_psi = -180
-        omega = geom_omega_test[(self.omega_class, omega_phi, omega_psi)]
+        omega = self.geom_omega_test[optlist.omega_type][(self.omega_class, omega_phi, omega_psi)]
 
         return omega
 
@@ -241,6 +246,7 @@ def load_omega_test(omega_file):
         pass
 
     omega_dict = {}
+    omega_dependent_dict = {}
 
     for line in open(omega_file):
         if line[0] in ['#','@']:
@@ -250,8 +256,14 @@ def load_omega_test(omega_file):
         omega_class = words[0]
         phi = int(words[1])
         psi = int(words[2])
+
+        dependent = False
+        if words[3] == 'B':
+            dependent = True
+
         average = float(words[5])
-        omega_dict[(omega_class, phi, psi)] = average
+        omega_dict[(omega_class, phi, psi)] = (average, dependent)
+        #omega_dependent_dict[(omega_class, phi, psi)] = dependent
 
     return omega_dict
 
@@ -464,7 +476,10 @@ def main(argv):
                 continue
             eh.msd += eh.dev**2
         if optlist.compare_cdecg:
-            cdecg_meas = cdecg.get(r, meas)
+            if optlist.omega_test:
+                cdecg_meas, cdecg_dependent = cdecg.get(r, meas)
+            else:
+                cdecg_meas = cdecg.get(r, meas)
             if cdecg_meas < -90:
                 cdecg_meas += 360
             cdecg.dev = r.props[meas] - cdecg_meas
@@ -504,9 +519,8 @@ def main(argv):
                 print '%+.2f %.2f' % (cdecg.dev, cdecg.msd),
             print '%d' % N,
             if optlist.omega_test:
-                print cdecg.omega_class
-            else:
-                print
+                print '%s %s' % (cdecg.omega_class_orig, ['dependent' if cdecg_dependent else 'independent'][0]),
+            print
     print
     print 'Using %d residues' % N
     if optlist.compare_pdbs:
