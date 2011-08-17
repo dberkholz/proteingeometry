@@ -156,6 +156,9 @@ class protein_geometry_database(geom):
         # If no classes are desired:
         #self.omega_class = 'All'
 
+        # For testing no-class vs classes
+        #omega_class = 'All'
+
         omega_file = '/data/research/manuscript-omega/KarplusJul15_2011_OmegaAfterAndBeforeInAdditToPrevBetween/ready/ascii/'
         if optlist.omega_type == 'after':
             omega_file += 'KernRegr_OmegaAfterAsPhi0Psi0_v1.2_Jul15-2011.txt'
